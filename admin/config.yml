@@ -1,0 +1,51 @@
+backend:
+  name: github
+  repo: Blueweyl/hype-district-plaridel
+  branch: master
+  base_url: https://oauth-proxy-blush.vercel.app
+  auth_endpoint: api/auth
+
+media_folder: "content/updates/media"
+public_folder: "content/updates/media"
+
+collections:
+  - name: "updates"
+    label: "Updates"
+    label_singular: "Update"
+    folder: "content/updates"
+    create: true
+    delete: true
+    format: "json"
+    extension: "json"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    identifier_field: "title"
+    summary: "{{title}} — {{platform}}"
+    sortable_fields: ["date", "title"]
+    fields:
+      - { label: "Title / Caption", name: "title", widget: "string" }
+      - label: "Platform"
+        name: "platform"
+        widget: "select"
+        options:
+          - { label: "Facebook", value: "facebook" }
+          - { label: "Instagram", value: "instagram" }
+          - { label: "TikTok", value: "tiktok" }
+      - label: "Post Link"
+        name: "link"
+        widget: "string"
+        required: false
+        hint: "Paste the Facebook, Instagram, or TikTok post URL here to automatically embed it (recommended)."
+      - label: "Photo"
+        name: "image"
+        widget: "image"
+        required: false
+        hint: "Only needed if you're not pasting a post link above."
+      - label: "Video File"
+        name: "video"
+        widget: "file"
+        required: false
+        hint: "Only needed if you're not pasting a post link above."
+      - label: "Date"
+        name: "date"
+        widget: "datetime"
+        format: "YYYY-MM-DDTHH:mm:ssZ"

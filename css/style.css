@@ -330,6 +330,66 @@ img { max-width: 100%; display: block; }
 .amenity-item h4 { font-size: 1.05rem; margin-bottom: 8px; }
 .amenity-item p { color: var(--text-muted); font-size: 0.9rem; }
 
+/* ---------- Social embeds ---------- */
+.social-embed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.social-embed-card {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.social-embed-card h4 {
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+}
+
+.social-embed-card iframe,
+.social-embed-card blockquote {
+  max-width: 100% !important;
+}
+
+/* ---------- Updates feed ---------- */
+.updates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.update-card { text-align: left; }
+
+.update-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.update-embed {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.update-embed iframe,
+.update-embed blockquote {
+  max-width: 100% !important;
+}
+
 /* ---------- FAQ ---------- */
 .faq-item {
   border-bottom: 1px solid var(--border);
