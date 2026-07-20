@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SukiDesk — Hype District Plaridel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body class="app-body">
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div class="screen screen-active" id="screen-login">
+  <div class="login-wrap">
+    <div class="login-logo">Suki<span>Desk</span></div>
+    <p class="login-sub">Hype District Barbers — Plaridel</p>
+
+    <div id="login-staff-grid" class="staff-grid"></div>
+
+    <div id="login-pin-panel" class="pin-panel hidden">
+      <button class="pin-back" id="login-pin-back">&larr; back</button>
+      <p class="pin-name" id="login-pin-name"></p>
+      <p class="pin-dots" id="login-pin-dots"></p>
+      <p class="pin-error" id="login-error"></p>
+      <div class="keypad" id="login-keypad">
+        <button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button>
+        <button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button>
+        <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
+        <button data-key="clear">Clear</button><button data-key="0">0</button><button data-key="del">⌫</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP SCREEN ===== -->
+<div class="screen" id="screen-app">
+  <header class="app-header">
+    <div class="app-logo">Suki<span>Desk</span></div>
+    <nav class="app-tabs">
+      <button class="app-tab active" data-tab="queue">Queue</button>
+      <button class="app-tab" data-tab="clients">Clients</button>
+      <button class="app-tab" data-tab="checkout">Checkout</button>
+      <button class="app-tab" data-tab="dashboard">Dashboard</button>
+      <button class="app-tab owner-only" data-tab="staff">Staff</button>
+      <button class="app-tab owner-only" data-tab="settings">Settings</button>
+    </nav>
+    <div class="app-user">
+      <span class="app-user-name" id="app-user-name"></span>
+      <span class="app-user-role" id="app-user-role"></span>
+      <button class="btn-sm" id="app-logout">Log out</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- QUEUE -->
+    <section class="app-view active" id="view-queue">
+      <div class="view-grid">
+        <div class="panel">
+          <h2>Add Walk-in</h2>
+          <form id="walkin-form" class="stacked-form">
+            <div class="field"><label>Client name</label><input name="client_name" required></div>
+            <div class="field"><label>Phone (optional)</label><input name="client_contact"></div>
+            <div class="field"><label>Service</label><select id="walkin-service" name="service"></select></div>
+            <div class="field"><label>Preferred stylist</label><select id="walkin-stylist" name="stylist"></select></div>
+            <button type="submit" class="btn btn-primary">Add to Queue</button>
+          </form>
+        </div>
+        <div class="panel panel-wide">
+          <h2>Today's Queue <span class="count-pill" id="queue-count">0</span></h2>
+          <div id="queue-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIENTS -->
+    <section class="app-view" id="view-clients">
+      <div class="view-grid">
+        <div class="panel panel-wide">
+          <div class="panel-head">
+            <h2>Clients</h2>
+            <div class="panel-head-actions">
+              <input type="search" id="client-search" placeholder="Search name or phone…">
+              <button class="btn-sm btn-sm-primary" id="client-add-btn">+ Add Client</button>
+            </div>
+          </div>
+          <div id="clients-list" class="client-list"></div>
+        </div>
+        <div class="panel" id="client-detail"></div>
+      </div>
+    </section>
+
+    <!-- CHECKOUT -->
+    <section class="app-view" id="view-checkout">
+      <div class="view-grid">
+        <div class="panel">
+          <h2>Checkout</h2>
+          <p class="muted" id="checkout-source-note"></p>
+          <form id="checkout-form" class="stacked-form">
+            <div class="field"><label>Client name</label><input id="checkout-client-name" required></div>
+            <div class="field"><label>Phone (optional)</label><input id="checkout-client-contact"></div>
+            <div class="field"><label>Stylist</label><select id="checkout-stylist"></select></div>
+            <div class="field-row">
+              <select id="checkout-service-add"></select>
+              <button type="button" class="btn-sm" id="checkout-add-service">+ Add</button>
+            </div>
+            <div id="checkout-cart" class="cart"></div>
+            <div class="field"><label>Payment method</label>
+              <select id="checkout-payment"><option value="cash">Cash</option><option value="gcash">GCash</option></select>
+            </div>
+            <button type="submit" class="btn btn-primary">Complete Checkout</button>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Summary</h2>
+          <div class="summary-row"><span>Total</span><strong id="checkout-total">₱0.00</strong></div>
+          <div class="summary-row"><span>Commission</span><strong id="checkout-commission">—</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="app-view" id="view-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-label">Queue Today</span><span class="stat-value" id="stat-queue-today">0</span></div>
+        <div class="stat-card"><span class="stat-label">Clients Served</span><span class="stat-value" id="stat-clients-today">0</span></div>
+        <div class="stat-card"><span class="stat-label">Sales Today</span><span class="stat-value" id="stat-sales-today">₱0.00</span></div>
+        <div class="stat-card"><span class="stat-label">Commission Owed</span><span class="stat-value" id="stat-commission-today">₱0.00</span></div>
+      </div>
+      <div class="panel">
+        <h2>Payouts by Staff (Today)</h2>
+        <div id="dashboard-payouts"></div>
+      </div>
+    </section>
+
+    <!-- STAFF (owner only) -->
+    <section class="app-view" id="view-staff">
+      <div class="view-grid">
+        <div class="panel">
+          <div class="panel-head"><h2>Staff</h2><button class="btn-sm btn-sm-primary" id="staff-add-btn">+ Add Staff</button></div>
+          <div id="staff-list"></div>
+        </div>
+        <div class="panel">
+          <h2>Service Prices</h2>
+          <p class="muted">Set the price for each service — used for commission calculation at checkout.</p>
+          <div id="services-editor" class="services-editor"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS (owner only) -->
+    <section class="app-view" id="view-settings">
+      <div class="panel" style="max-width:520px;">
+        <h2>Cloud Sync (Google Sheets)</h2>
+        <p class="muted">Paste the Web App URL and secret token from your Apps Script deployment — see <code>apps-script/SETUP.md</code> for the one-time setup steps.</p>
+        <form id="settings-form" class="stacked-form">
+          <div class="field"><label>Web App URL</label><input name="webAppUrl" placeholder="https://script.google.com/macros/s/…/exec"></div>
+          <div class="field"><label>Secret token</label><input name="token" placeholder="matches SUKIDESK_SECRET in Script Properties"></div>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+        <div class="field-row" style="margin-top:18px;">
+          <button class="btn-sm" id="settings-push" type="button">Push to Cloud Now</button>
+          <button class="btn-sm" id="settings-pull" type="button">Pull from Cloud Now</button>
+        </div>
+        <p class="muted" style="margin-top:16px;">Status: <span id="sync-status" class="sync-status sync-idle">Not connected</span></p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal" id="modal-add-client">
+  <div class="modal-box">
+    <h3>Add Client</h3>
+    <form id="add-client-form" class="stacked-form">
+      <div class="field"><label>Name</label><input name="name" required></div>
+      <div class="field"><label>Phone</label><input name="contact_number"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-sm" data-close-modal="modal-add-client">Cancel</button>
+        <button type="submit" class="btn-sm btn-sm-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modal-add-staff">
+  <div class="modal-box">
+    <h3>Add Staff</h3>
+    <form id="add-staff-form" class="stacked-form">
+      <div class="field"><label>Name</label><input name="name" required></div>
+      <div class="field"><label>PIN (4–6 digits)</label><input name="pin" required pattern="\d{4,6}"></div>
+      <div class="field"><label>Phone</label><input name="contact_number"></div>
+      <div class="field"><label>Commission type</label>
+        <select name="commission_type">
+          <option value="percentage">Percentage per service</option>
+          <option value="fixed">Fixed per transaction</option>
+          <option value="chair-rental">Chair rental (keeps full amount)</option>
+        </select>
+      </div>
+      <div class="field"><label>Commission rate (% or ₱)</label><input name="commission_rate" type="number" min="0" step="0.01" value="0"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-sm" data-close-modal="modal-add-staff">Cancel</button>
+        <button type="submit" class="btn-sm btn-sm-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
