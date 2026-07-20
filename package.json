@@ -1,0 +1,10 @@
+{
+  "name": "hype-district-plaridel-api",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "stripe": "^17.0.0"
+  }
+}

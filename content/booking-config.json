@@ -1,0 +1,11 @@
+{
+  "services": [
+    { "id": "classic-haircut-fade", "name": "Classic Haircuts & Fades", "price": 250 },
+    { "id": "full-grooming", "name": "Full Grooming Experience", "price": 500 },
+    { "id": "scalp-treatment", "name": "Scalp Treatment", "price": 1800 },
+    { "id": "korean-perm", "name": "Korean Perm", "price": 1000 },
+    { "id": "loose-perm", "name": "Loose Perm", "price": 1000 },
+    { "id": "classic-perm", "name": "Traditional / Classic Perm", "price": 1000 }
+  ],
+  "hours": { "openTime": "09:00", "closeTime": "21:00", "slotMinutes": 45, "timezone": "Asia/Manila" }
+}

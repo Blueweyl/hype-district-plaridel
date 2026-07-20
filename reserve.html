@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Updates | Hype District Barbers – Plaridel</title>
+<title>Reserve | Hype District Barbers – Plaridel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/reserve.css">
 </head>
 <body>
 
@@ -16,9 +17,9 @@
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html">Services</a></li>
-      <li><a href="reserve.html">Reserve</a></li>
+      <li><a href="reserve.html" class="active">Reserve</a></li>
       <li><a href="gallery.html">Gallery</a></li>
-      <li><a href="updates.html" class="active">Updates</a></li>
+      <li><a href="updates.html">Updates</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>
     </ul>
@@ -31,21 +32,54 @@
 </header>
 
 <section class="section" style="padding-top:160px;">
-  <div class="container">
-    <span class="eyebrow">Fresh From The Chair</span>
-    <h1 class="section-title">Latest Updates</h1>
-    <p class="section-intro">New cuts, promos, and announcements — posted straight from our Facebook, Instagram, and TikTok.</p>
-    <div class="updates-grid" data-updates-full>
-      <p style="color:var(--text-muted);">Loading updates…</p>
-    </div>
-  </div>
-</section>
+  <div class="container" style="max-width:820px;">
+    <span class="eyebrow">Book Online</span>
+    <h1 class="section-title">Reserve Your Appointment</h1>
+    <p class="section-intro">Pick a service, date, and time, and pay securely by card to lock in your slot — no waiting in line. Full service price is charged at booking.</p>
 
-<section class="cta-band">
-  <div class="container">
-    <h2>Follow For More</h2>
-    <p>Catch every drop first on our socials.</p>
-    <a href="reserve.html" class="btn btn-primary">Book Appointment</a>
+    <div id="reserve-status"></div>
+
+    <form id="reserve-form" class="booking-steps">
+
+      <div class="booking-step">
+        <span class="step-num">Step 1</span>
+        <h3>Choose a Service</h3>
+        <p class="step-hint">Bookable online for now — ask in-store for anything else on our <a href="services.html" style="color:var(--gold);">full menu</a>.</p>
+        <div class="service-pills" data-service-list>
+          <p style="color:var(--text-muted); font-size:0.9rem;">Loading services…</p>
+        </div>
+      </div>
+
+      <div class="booking-step">
+        <span class="step-num">Step 2</span>
+        <h3>Pick a Date &amp; Time</h3>
+        <p class="step-hint">Open daily, 9:00 AM – 9:00 PM · 45-minute appointments · Plaridel local time.</p>
+        <input type="date" class="booking-date" id="reserve-date" required>
+        <div class="slot-grid" data-slot-grid>
+          <span class="slot-empty">Select a date to see available times.</span>
+        </div>
+      </div>
+
+      <div class="booking-step">
+        <span class="step-num">Step 3</span>
+        <h3>Your Details</h3>
+        <p class="step-hint">We'll use this to confirm your booking and send your receipt.</p>
+        <div class="contact-form" style="gap:14px;">
+          <input type="text" id="reserve-name" placeholder="Full Name" autocomplete="name" required>
+          <input type="tel" id="reserve-phone" placeholder="Phone Number" autocomplete="tel" required>
+          <input type="email" id="reserve-email" placeholder="Email Address" autocomplete="email" required>
+        </div>
+      </div>
+
+      <div class="booking-summary">
+        <div>
+          <span class="total-label">Total Due Today</span>
+          <span class="total-amount" data-total-amount>₱0</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-pay" data-pay-btn disabled>Select a Service</button>
+      </div>
+      <p class="form-error" data-form-error hidden></p>
+    </form>
   </div>
 </section>
 
@@ -96,6 +130,6 @@
   </div>
 </footer>
 <script src="js/script.js"></script>
-<script src="js/updates.js"></script>
+<script src="js/reserve.js"></script>
 </body>
 </html>

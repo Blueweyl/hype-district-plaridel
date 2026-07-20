@@ -49,3 +49,25 @@ collections:
         name: "date"
         widget: "datetime"
         format: "YYYY-MM-DDTHH:mm:ssZ"
+
+  - name: "reservations"
+    label: "Reservations"
+    label_singular: "Reservation"
+    folder: "content/reservations"
+    create: false
+    delete: true
+    format: "json"
+    extension: "json"
+    identifier_field: "firstName"
+    summary: "{{date}} {{time}} — {{serviceName}} — {{firstName}} (…{{phoneLast4}})"
+    sortable_fields: ["date", "time"]
+    fields:
+      - { label: "Date", name: "date", widget: "string" }
+      - { label: "Time", name: "time", widget: "string" }
+      - { label: "Service ID", name: "serviceId", widget: "string" }
+      - { label: "Service Name", name: "serviceName", widget: "string" }
+      - { label: "Price (PHP)", name: "price", widget: "number" }
+      - { label: "First Name", name: "firstName", widget: "string" }
+      - { label: "Phone (last 4)", name: "phoneLast4", widget: "string" }
+      - { label: "Stripe Session ID", name: "stripeSessionId", widget: "string" }
+      - { label: "Confirmed At", name: "confirmedAt", widget: "datetime" }
