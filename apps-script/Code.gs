@@ -39,7 +39,16 @@ function checkAuth_(token) {
   return token === secret;
 }
 
-function getOrCreateSheet_(name, headers) {
+// Columns that must never be auto-converted to a number by Sheets (which would
+// mangle a PIN like "1234" into 1234, or strip a phone number's leading zero) —
+// forced to Plain Text format so typed/pasted values always stay strings.
+const TEXT_COLUMNS = {
+  staff: ['pin', 'contact_number'],
+  clients: ['contact_number'],
+  bookings: ['client_contact', 'client_email']
+};
+
+function getOrCreateSheet_(key, name, headers) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(name);
   if (!sheet) {
@@ -48,12 +57,17 @@ function getOrCreateSheet_(name, headers) {
   } else if (sheet.getLastRow() === 0) {
     sheet.appendRow(headers);
   }
+  (TEXT_COLUMNS[key] || []).forEach(col => {
+    const idx = headers.indexOf(col);
+    if (idx === -1) return;
+    sheet.getRange(1, idx + 1, Math.max(sheet.getMaxRows(), 1000), 1).setNumberFormat('@');
+  });
   return sheet;
 }
 
 function readTab_(key) {
   const headers = SCHEMAS[key];
-  const sheet = getOrCreateSheet_(SHEET_NAMES[key], headers);
+  const sheet = getOrCreateSheet_(key, SHEET_NAMES[key], headers);
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
   const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
@@ -62,6 +76,7 @@ function readTab_(key) {
     .map(row => {
       const obj = {};
       headers.forEach((h, i) => { obj[h] = row[i]; });
+      (TEXT_COLUMNS[key] || []).forEach(col => { obj[col] = obj[col] == null ? '' : String(obj[col]); });
       if (key === 'transactions' && typeof obj.services === 'string') {
         try { obj.services = JSON.parse(obj.services); } catch (e) { obj.services = []; }
       }
@@ -78,7 +93,7 @@ function readTab_(key) {
 
 function writeTab_(key, rows) {
   const headers = SCHEMAS[key];
-  const sheet = getOrCreateSheet_(SHEET_NAMES[key], headers);
+  const sheet = getOrCreateSheet_(key, SHEET_NAMES[key], headers);
   const lastRow = sheet.getLastRow();
   if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, headers.length).clearContent();
   if (!rows || !rows.length) return;
@@ -144,7 +159,7 @@ function doPost(e) {
     }
     try {
       const headers = SCHEMAS.bookings;
-      const sheet = getOrCreateSheet_(SHEET_NAMES.bookings, headers);
+      const sheet = getOrCreateSheet_('bookings', SHEET_NAMES.bookings, headers);
       const booking = payload.booking || {};
       sheet.appendRow(headers.map(h => (booking[h] === undefined || booking[h] === null) ? '' : booking[h]));
       return jsonOut_({ ok: true });
