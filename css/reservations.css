@@ -1,0 +1,46 @@
+/* ===== Reservations list page ===== */
+
+.reservations-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.reservations-table th,
+.reservations-table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.reservations-table th {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.reservations-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reservations-table tbody tr:hover {
+  background: rgba(201, 162, 75, 0.05);
+}
+
+.phone-last4 {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .reservations-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
