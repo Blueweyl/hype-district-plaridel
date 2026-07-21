@@ -7,6 +7,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGIN || 'https://blueweyl.github.io')
   .split(',')
   .map((s) => s.trim());
+// The site is a GitHub *project* page (served under /hype-district-plaridel/,
+// not at the bare origin), so redirects need this path — unlike ALLOWED_ORIGINS,
+// which must stay the bare origin to match the browser's Origin header for CORS.
+const SITE_BASE_URL = process.env.SITE_BASE_URL || 'https://blueweyl.github.io/hype-district-plaridel';
 
 function setCors(req, res) {
   const origin = req.headers.origin;
@@ -89,7 +93,6 @@ module.exports = async (req, res) => {
   const firstName = String(fullName).trim().split(/\s+/)[0] || fullName;
   const phoneDigits = String(phone).replace(/\D/g, '');
   const phoneLast4 = phoneDigits.slice(-4);
-  const origin = ALLOWED_ORIGINS[0];
 
   let session;
   try {
@@ -117,8 +120,8 @@ module.exports = async (req, res) => {
         fullName,
         phone,
       },
-      success_url: `${origin}/reserve.html?success=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/reserve.html?canceled=1`,
+      success_url: `${SITE_BASE_URL}/reserve.html?success=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${SITE_BASE_URL}/reserve.html?canceled=1`,
     });
   } catch (err) {
     console.error('Stripe session creation failed', err);

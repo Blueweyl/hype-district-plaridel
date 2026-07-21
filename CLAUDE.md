@@ -67,11 +67,19 @@ A real (non-demo) booking flow: pick a service, date, and time on `reserve.html`
 
 **Privacy**: `content/reservations/*.json` is in a public repo (required for GitHub Pages + Decap CMS's unauthenticated reads to keep working), so by design it stores only `firstName` + `phoneLast4` — never full name, phone, or email. Full customer contact details live in the Stripe Dashboard (captured at checkout) — that's where the shop owner looks to actually call/confirm a customer. Keep any future change to the reservation schema consistent with this — don't start writing full PII into the repo.
 
-**Env vars** (set in the Vercel project's dashboard, never committed): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `GITHUB_TOKEN` (fine-grained PAT, Contents read/write, scoped to only this repo), `ALLOWED_ORIGIN` (CORS allow-list for `api/create-checkout-session`, e.g. `https://blueweyl.github.io`).
+**Env vars** (set in the Vercel project's dashboard, never committed): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `GITHUB_TOKEN` (fine-grained PAT, Contents read/write, scoped to only this repo), `ALLOWED_ORIGIN` (CORS allow-list for `api/create-checkout-session`, e.g. `https://blueweyl.github.io` — must stay the bare origin, no path, to match the browser's `Origin` header), `SITE_BASE_URL` (optional override for the Stripe success/cancel redirect base; defaults to `https://blueweyl.github.io/hype-district-plaridel`, i.e. `ALLOWED_ORIGIN` **plus** the GitHub project-page path — these two intentionally differ in shape, don't try to derive one from the other).
 
 **Bookable services/prices/hours** live in `content/booking-config.json` (single source of truth, read by both client and server) — edit prices/services there, not in HTML. The 45-minute slot-generation loop itself is intentionally duplicated in `js/reserve.js` and `api/_lib/slots.js` (no bundler exists to share an ES module across the browser/Node boundary) — keep both in sync if the algorithm (not just the hours/prices data) ever changes. Business hours are fixed to `Asia/Manila` (UTC+8) on both sides regardless of visitor or server timezone.
 
 The `reservations` collection in `admin/config.yml` (`create: false`, `delete: true`) lets the shop owner view/cancel bookings in Decap CMS the same way they manage `updates` — but bookings are only ever created by the webhook, never hand-authored there.
+
+### SukiDesk staff app (`app.html`, `js/app.js`, `css/app.css`, `apps-script/`)
+
+A separate internal tool, not part of the public marketing site and not linked from its nav/footer. It's a queue/checkout/CRM app for front-desk staff: PIN login per staff member (`screen-login`), then tabbed views (Queue, Clients, Checkout, Dashboard, and owner-only Staff/Settings) in `screen-app`.
+
+- **Storage model**: `js/app.js` keeps the whole DB (`staff`, `clients`, `bookings`, `transactions`, `services`) in `localStorage` (`sukidesk_db_v1`) as the always-on, offline-tolerant source of truth. If a Google Sheets Web App URL + secret token are configured in the Settings tab, it additionally syncs the entire DB: pulls on login, pushes ~1.5s after any change (`pushToCloud`/`pullFromCloud`).
+- **Sync backend**: `apps-script/Code.gs` is a Google Apps Script Web App (deployed by the shop owner, not part of any build/deploy pipeline here) that reads/writes named tabs in a Google Sheet the owner controls, gated by a `SUKIDESK_SECRET` script property. It's whole-sheet overwrite, last-write-wins — no per-record merge — see `apps-script/SETUP.md` for the owner-facing setup walkthrough and that limitation.
+- Because sync is last-write-wins across the entire DB, avoid changing `js/app.js`'s record shape without also updating `SCHEMAS` in `Code.gs` — the two must agree on field names for each of the five tabs.
 
 ## Content notes
 
