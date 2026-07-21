@@ -68,6 +68,25 @@ auto-pushes a few seconds after anything changes — you shouldn't need to
 press the buttons again day-to-day. They're there for manually forcing a
 sync if you're troubleshooting (e.g. "this tablet looks out of date").
 
+## 6. Connect online reservations (optional)
+
+The website's booking webhook (`api/stripe-webhook.js`, a separate Vercel
+project) can push each paid online reservation straight into this same
+Sheet's `Bookings` tab — full name, phone, and email included, which never
+get written to the public GitHub repo. To wire it up:
+
+1. In that Vercel project's dashboard → Settings → Environment Variables,
+   add `SUKIDESK_WEBAPP_URL` (the same Web App URL from step 4 above) and
+   `SUKIDESK_SECRET` (the same secret value from step 3 — must match
+   exactly).
+2. Redeploy the Vercel project so it picks up the new variables.
+
+Once set, any completed online booking shows up in the app's
+**Reservations** tab after the next Pull from Cloud (or the next login).
+If these two variables aren't set, the webhook just skips this step
+silently — the reservation itself (written to the public repo, first name
++ last-4 phone only) is unaffected either way.
+
 ## Notes / limits
 
 - **One writer at a time.** If two devices save changes within the same

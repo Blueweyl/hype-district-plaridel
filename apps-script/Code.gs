@@ -4,9 +4,13 @@
  * See SETUP.md for step-by-step instructions.
  *
  * API:
- *   GET  ?action=getAll&token=SECRET        -> { ok: true, db: { staff, clients, bookings, transactions, services } }
- *   POST { action:'saveAll', token, db }    -> { ok: true, savedAt }
+ *   GET  ?action=getAll&token=SECRET          -> { ok: true, db: { staff, clients, bookings, transactions, services } }
+ *   POST { action:'saveAll', token, db }      -> { ok: true, savedAt }
+ *   POST { action:'addBooking', token, booking } -> { ok: true }
  *     (POST body is sent as text/plain to avoid a CORS preflight; this script parses it as JSON.)
+ *     addBooking appends a single row without touching the rest of the sheet — used by
+ *     api/stripe-webhook.js to push online reservations in here (full name/phone/email),
+ *     since the webhook only ever has one booking at a time, never the full DB snapshot.
  */
 
 const SHEET_NAMES = {
@@ -20,7 +24,7 @@ const SHEET_NAMES = {
 const SCHEMAS = {
   staff: ['id', 'name', 'pin', 'role', 'commission_type', 'commission_rate', 'contact_number'],
   clients: ['id', 'name', 'contact_number', 'preferred_stylist', 'notes', 'first_visit_date', 'last_visit_date', 'total_visits'],
-  bookings: ['id', 'client_id', 'client_name', 'client_contact', 'requested_stylist_id', 'service', 'source', 'status', 'scheduled_time', 'created_at'],
+  bookings: ['id', 'client_id', 'client_name', 'client_contact', 'client_email', 'requested_stylist_id', 'service', 'source', 'status', 'scheduled_time', 'created_at'],
   transactions: ['id', 'booking_id', 'client_id', 'client_name', 'staff_id', 'staff_name', 'services', 'amount', 'payment_method', 'commission_amount', 'commission_rate_used', 'date'],
   services: ['id', 'name', 'price']
 };
@@ -130,5 +134,24 @@ function doPost(e) {
       lock.releaseLock();
     }
   }
+
+  if (payload.action === 'addBooking') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(10000);
+    } catch (err) {
+      return jsonOut_({ error: 'busy, try again' });
+    }
+    try {
+      const headers = SCHEMAS.bookings;
+      const sheet = getOrCreateSheet_(SHEET_NAMES.bookings, headers);
+      const booking = payload.booking || {};
+      sheet.appendRow(headers.map(h => (booking[h] === undefined || booking[h] === null) ? '' : booking[h]));
+      return jsonOut_({ ok: true });
+    } finally {
+      lock.releaseLock();
+    }
+  }
+
   return jsonOut_({ error: 'unknown action' });
 }

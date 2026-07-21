@@ -245,6 +245,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 .badge-in_queue { background: #3a2f10; color: var(--gold-light); }
 .badge-completed { background: #16321f; color: #7fd99a; }
 .badge-no_show { background: #3a1616; color: #e08a8a; }
+.badge-confirmed { background: #16321f; color: #7fd99a; }
 
 /* ---------- Clients ---------- */
 .client-list { display: flex; flex-direction: column; }

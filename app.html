@@ -42,6 +42,7 @@
       <button class="app-tab active" data-tab="queue">Queue</button>
       <button class="app-tab" data-tab="clients">Clients</button>
       <button class="app-tab" data-tab="checkout">Checkout</button>
+      <button class="app-tab" data-tab="reservations">Reservations</button>
       <button class="app-tab" data-tab="dashboard">Dashboard</button>
       <button class="app-tab owner-only" data-tab="staff">Staff</button>
       <button class="app-tab owner-only" data-tab="settings">Settings</button>
@@ -118,6 +119,15 @@
           <div class="summary-row"><span>Total</span><strong id="checkout-total">₱0.00</strong></div>
           <div class="summary-row"><span>Commission</span><strong id="checkout-commission">—</strong></div>
         </div>
+      </div>
+    </section>
+
+    <!-- RESERVATIONS (online bookings from the website, synced via SukiDesk backend) -->
+    <section class="app-view" id="view-reservations">
+      <div class="panel">
+        <h2>Online Reservations <span class="count-pill" id="reservations-count">0</span></h2>
+        <p class="muted">Bookings paid for on the website — full name, phone, and email are only ever visible here, not on the public site.</p>
+        <div id="reservations-list"></div>
       </div>
     </section>
 

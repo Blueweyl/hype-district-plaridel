@@ -252,6 +252,7 @@ function goTab(name) {
   if (name === 'queue') renderQueue();
   if (name === 'clients') renderClients();
   if (name === 'checkout') renderCheckout();
+  if (name === 'reservations') renderReservations();
   if (name === 'dashboard') renderDashboard();
   if (name === 'staff') renderStaffView();
   if (name === 'settings') renderSettings();
@@ -346,6 +347,43 @@ function fillStylistOptions(selectEl, includeAny) {
 function fillServiceOptions(selectEl) {
   selectEl.innerHTML = '<option value="">Select service…</option>' +
     DB.services.map(s => `<option value="${s.id}">${esc(s.name)}${s.price ? ' — ' + peso(s.price) : ''}</option>`).join('');
+}
+
+/* ---------- RESERVATIONS (online bookings, synced from the website via Sheets) ---------- */
+function renderReservations() {
+  const list = DB.bookings
+    .filter(b => b.source === 'online')
+    .sort((a, b) => (a.scheduled_time || '').localeCompare(b.scheduled_time || ''));
+
+  document.getElementById('reservations-count').textContent = list.length;
+
+  const el = document.getElementById('reservations-list');
+  if (!list.length) {
+    el.innerHTML = '<p class="muted">No online reservations synced yet. Pull from Cloud in Settings if you\'re expecting some.</p>';
+    return;
+  }
+
+  el.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Time</th><th>Service</th><th>Name</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead>
+      <tbody>
+        ${list.map(b => {
+          const dt = b.scheduled_time ? new Date(b.scheduled_time) : null;
+          const dateStr = dt ? dt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' }) : '—';
+          const timeStr = dt ? dt.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' }) : '—';
+          return `
+          <tr>
+            <td>${dateStr}</td>
+            <td>${timeStr}</td>
+            <td>${esc(b.service)}</td>
+            <td>${esc(b.client_name)}</td>
+            <td>${esc(b.client_contact || '—')}</td>
+            <td>${esc(b.client_email || '—')}</td>
+            <td><span class="badge badge-${b.status}">${esc((b.status || '').replace('_', ' '))}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
 }
 
 /* ---------- CLIENTS ---------- */
