@@ -69,5 +69,12 @@ collections:
       - { label: "Price (PHP)", name: "price", widget: "number" }
       - { label: "First Name", name: "firstName", widget: "string" }
       - { label: "Phone (last 4)", name: "phoneLast4", widget: "string" }
-      - { label: "Stripe Session ID", name: "stripeSessionId", widget: "string" }
+      - label: "Payment Provider"
+        name: "paymentProvider"
+        widget: "select"
+        required: false
+        options:
+          - { label: "Stripe (Card)", value: "stripe" }
+          - { label: "PayMongo (GCash)", value: "paymongo" }
+      - { label: "Provider Session ID", name: "providerSessionId", widget: "string", required: false }
       - { label: "Confirmed At", name: "confirmedAt", widget: "datetime" }

@@ -138,13 +138,19 @@
   function updateSummary() {
     const ready = state.selectedService && state.selectedDate && state.selectedTime;
     els.totalAmount.textContent = state.selectedService ? formatPeso(state.selectedService.price) : '₱0';
+
     els.payBtn.disabled = !ready;
+    els.payBtnGcash.disabled = !ready;
+
     if (ready) {
-      els.payBtn.textContent = 'Pay & Confirm — ' + formatPeso(state.selectedService.price);
+      els.payBtn.textContent = 'Pay with Card — ' + formatPeso(state.selectedService.price);
+      els.payBtnGcash.textContent = 'Pay with GCash — ' + formatPeso(state.selectedService.price);
     } else if (state.selectedService) {
       els.payBtn.textContent = 'Pick a date & time';
+      els.payBtnGcash.textContent = 'Pick a date & time';
     } else {
       els.payBtn.textContent = 'Select a Service';
+      els.payBtnGcash.textContent = 'Select a Service';
     }
   }
 
@@ -172,6 +178,11 @@
     els.formError.hidden = !msg;
   }
 
+  const PROVIDER_ENDPOINTS = {
+    stripe: '/api/create-checkout-session',
+    paymongo: '/api/create-paymongo-checkout',
+  };
+
   async function handleSubmit(e) {
     e.preventDefault();
     showError('');
@@ -189,11 +200,18 @@
       return;
     }
 
+    // e.submitter is which of the two <button type="submit"> was actually
+    // clicked — that's how we know card (Stripe) vs GCash (PayMongo).
+    const provider = (e.submitter && e.submitter.dataset.provider) || 'stripe';
+    const endpoint = PROVIDER_ENDPOINTS[provider];
+    const clickedBtn = provider === 'paymongo' ? els.payBtnGcash : els.payBtn;
+
     els.payBtn.disabled = true;
-    els.payBtn.classList.add('loading');
+    els.payBtnGcash.disabled = true;
+    clickedBtn.classList.add('loading');
 
     try {
-      const res = await fetch(VERCEL_API_BASE + '/api/create-checkout-session', {
+      const res = await fetch(VERCEL_API_BASE + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -222,8 +240,7 @@
       showError('Could not reach the payment service. Please check your connection and try again.');
     }
 
-    els.payBtn.disabled = false;
-    els.payBtn.classList.remove('loading');
+    clickedBtn.classList.remove('loading');
     updateSummary();
   }
 
@@ -251,6 +268,7 @@
     els.email = document.getElementById('reserve-email');
     els.totalAmount = document.querySelector('[data-total-amount]');
     els.payBtn = document.querySelector('[data-pay-btn]');
+    els.payBtnGcash = document.querySelector('[data-pay-btn-gcash]');
     els.formError = document.querySelector('[data-form-error]');
     els.form = document.getElementById('reserve-form');
     els.status = document.getElementById('reserve-status');

@@ -1,13 +1,9 @@
-const Stripe = require('stripe');
 const { validateBooking } = require('./_lib/booking-validate');
+const { createCheckoutSession } = require('./_lib/paymongo');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGIN || 'https://blueweyl.github.io')
   .split(',')
   .map((s) => s.trim());
-// The site is a GitHub *project* page (served under /hype-district-plaridel/,
-// not at the bare origin), so redirects need this path — unlike ALLOWED_ORIGINS,
-// which must stay the bare origin to match the browser's Origin header for CORS.
 const SITE_BASE_URL = process.env.SITE_BASE_URL || 'https://blueweyl.github.io/hype-district-plaridel';
 
 function setCors(req, res) {
@@ -61,40 +57,44 @@ module.exports = async (req, res) => {
   }
   const { service, firstName, phoneLast4 } = validation;
 
+  // Metadata values must be strings (PayMongo requirement) — this is how the
+  // webhook recovers who/what/when, mirroring the Stripe session's metadata.
+  const metadata = {
+    serviceId: service.id,
+    serviceName: service.name,
+    price: String(service.price),
+    date,
+    time,
+    firstName,
+    phoneLast4,
+    fullName,
+    phone,
+    email,
+  };
+
   let session;
   try {
-    session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: [
+    session = await createCheckoutSession({
+      secretKey: process.env.PAYMONGO_SECRET_KEY,
+      lineItems: [
         {
-          price_data: {
-            currency: 'php',
-            unit_amount: service.price * 100,
-            product_data: { name: service.name },
-          },
+          amount: service.price * 100,
+          currency: 'PHP',
+          name: service.name,
           quantity: 1,
         },
       ],
-      customer_email: email,
-      metadata: {
-        serviceId: service.id,
-        serviceName: service.name,
-        price: String(service.price),
-        date,
-        time,
-        firstName,
-        phoneLast4,
-        fullName,
-        phone,
-      },
-      success_url: `${SITE_BASE_URL}/reserve.html?success=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_BASE_URL}/reserve.html?canceled=1`,
+      paymentMethodTypes: ['gcash'],
+      successUrl: `${SITE_BASE_URL}/reserve.html?success=1&provider=paymongo`,
+      cancelUrl: `${SITE_BASE_URL}/reserve.html?canceled=1`,
+      description: `${service.name} — Hype District Plaridel`,
+      metadata,
     });
   } catch (err) {
-    console.error('Stripe session creation failed', err);
+    console.error('PayMongo session creation failed', err.status, err.body || err.message);
     res.status(502).json({ error: 'Payment provider error — please try again.' });
     return;
   }
 
-  res.status(200).json({ url: session.url });
+  res.status(200).json({ url: session.attributes.checkout_url });
 };

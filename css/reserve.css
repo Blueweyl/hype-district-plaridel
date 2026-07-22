@@ -161,6 +161,12 @@
   font-size: 1.8rem;
 }
 
+.pay-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .btn-pay {
   min-width: 220px;
   text-align: center;
@@ -223,5 +229,6 @@
 @media (max-width: 600px) {
   .booking-step { padding: 20px; }
   .booking-summary { flex-direction: column; align-items: stretch; text-align: center; }
+  .pay-buttons { flex-direction: column; }
   .btn-pay { width: 100%; }
 }

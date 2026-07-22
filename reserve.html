@@ -76,7 +76,10 @@
           <span class="total-label">Total Due Today</span>
           <span class="total-amount" data-total-amount>₱0</span>
         </div>
-        <button type="submit" class="btn btn-primary btn-pay" data-pay-btn disabled>Select a Service</button>
+        <div class="pay-buttons">
+          <button type="submit" class="btn btn-primary btn-pay" data-pay-btn data-provider="stripe" disabled>Select a Service</button>
+          <button type="submit" class="btn btn-outline btn-pay" data-pay-btn-gcash data-provider="paymongo" disabled>Pay with GCash</button>
+        </div>
       </div>
       <p class="form-error" data-form-error hidden></p>
     </form>
