@@ -1,0 +1,12 @@
+{
+  "date": "2026-07-24",
+  "time": "17:15",
+  "serviceId": "scalp-treatment",
+  "serviceName": "Scalp Treatment",
+  "price": 1800,
+  "firstName": "Rosalyn",
+  "phoneLast4": "5333",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_a1nwJNGS9EazM0XBbD8mI9ifJdiQkAWbgCn6iQ8kI8zlQsErzoj9kIMSBE",
+  "confirmedAt": "2026-07-23T01:53:18.069Z"
+}
