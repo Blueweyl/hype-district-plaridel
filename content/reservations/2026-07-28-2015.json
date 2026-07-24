@@ -1,0 +1,12 @@
+{
+  "date": "2026-07-28",
+  "time": "20:15",
+  "serviceId": "scalp-treatment",
+  "serviceName": "Scalp Treatment",
+  "price": 1800,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_a14HmrNrcZj0Vjz7ocnb0Gn2TyGmmocpCa4pweDniJVnnH2TIHMsevcLiY",
+  "confirmedAt": "2026-07-24T09:12:20.756Z"
+}
