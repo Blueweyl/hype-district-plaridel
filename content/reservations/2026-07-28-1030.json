@@ -1,0 +1,12 @@
+{
+  "date": "2026-07-28",
+  "time": "10:30",
+  "serviceId": "classic-perm",
+  "serviceName": "Traditional / Classic Perm",
+  "price": 1000,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_a1hCrWW2LVu6HTxuPwrcgYA6a8N5ymzmI7ab7Y6ygcYw4Amu9cS8q6rSSx",
+  "confirmedAt": "2026-07-24T09:10:15.725Z"
+}
