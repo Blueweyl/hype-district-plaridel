@@ -1,0 +1,12 @@
+{
+  "date": "2026-07-29",
+  "time": "15:00",
+  "serviceId": "full-grooming",
+  "serviceName": "Full Grooming Experience",
+  "price": 500,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_a1nh538UptPOTkmrGyh9lxGBUnAvH4VT64OpbfbEpKze5XiPL0Cl98hgVa",
+  "confirmedAt": "2026-07-24T09:08:27.630Z"
+}
