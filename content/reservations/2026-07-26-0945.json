@@ -1,0 +1,12 @@
+{
+  "date": "2026-07-26",
+  "time": "09:45",
+  "serviceId": "classic-haircut-fade",
+  "serviceName": "Classic Haircuts & Fades",
+  "price": 250,
+  "firstName": "Aljon",
+  "phoneLast4": "7741",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_a1WYERHGRp9l8n7LPAPxZSQV0i8N5pCJFgEm02WVLeSr3t1GIEqImo3W1g",
+  "confirmedAt": "2026-07-25T08:43:54.948Z"
+}
