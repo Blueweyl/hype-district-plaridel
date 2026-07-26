@@ -27,7 +27,7 @@ const SHEET_NAMES = {
 
 const SCHEMAS = {
   staff: ['id', 'name', 'pin', 'role', 'commission_type', 'commission_rate', 'contact_number'],
-  clients: ['id', 'name', 'contact_number', 'preferred_stylist', 'notes', 'first_visit_date', 'last_visit_date', 'total_visits'],
+  clients: ['id', 'name', 'contact_number', 'email', 'preferred_stylist', 'notes', 'first_visit_date', 'last_visit_date', 'total_visits'],
   bookings: ['id', 'client_id', 'client_name', 'client_contact', 'client_email', 'requested_stylist_id', 'service', 'source', 'status', 'scheduled_time', 'created_at', 'gcash_reference', 'proof_url'],
   transactions: ['id', 'booking_id', 'client_id', 'client_name', 'staff_id', 'staff_name', 'services', 'amount', 'payment_method', 'commission_amount', 'commission_rate_used', 'date'],
   services: ['id', 'name', 'price']

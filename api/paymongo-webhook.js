@@ -1,5 +1,6 @@
 const { verifyWebhookSignature } = require('./_lib/paymongo');
 const { confirmReservation } = require('./_lib/reservation');
+const { sendEmail, paymentReceiptEmail } = require('./_lib/email');
 
 // Needed so we can verify PayMongo's signature against the exact raw request
 // bytes — same reasoning as stripe-webhook.js.
@@ -76,6 +77,18 @@ module.exports = async (req, res) => {
     if (result.ok === false) {
       res.status(500).json({ error: 'Failed to persist reservation' });
       return;
+    }
+
+    if (email && !result.alreadyProcessed) {
+      const { subject, html } = paymentReceiptEmail({
+        fullName,
+        serviceName,
+        date,
+        time,
+        price,
+        paymentMethod: 'GCash',
+      });
+      await sendEmail({ to: email, subject, html });
     }
 
     res.status(200).json({ received: true, alreadyProcessed: !!result.alreadyProcessed });

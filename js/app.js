@@ -626,11 +626,13 @@ function bindClientActions() {
   });
 }
 
-function getOrCreateClient(name, contact) {
+function getOrCreateClient(name, contact, email) {
   let c = DB.clients.find(c => c.name.toLowerCase() === name.toLowerCase());
   if (!c) {
-    c = { id: uid('cli'), name, contact_number: contact || '', preferred_stylist: null, notes: '', first_visit_date: todayStr(), last_visit_date: null, total_visits: 0 };
+    c = { id: uid('cli'), name, contact_number: contact || '', email: email || '', preferred_stylist: null, notes: '', first_visit_date: todayStr(), last_visit_date: null, total_visits: 0 };
     DB.clients.push(c);
+  } else if (email) {
+    c.email = email;
   }
   return c;
 }
@@ -644,6 +646,7 @@ function renderCheckout() {
 
   document.getElementById('checkout-client-name').value = booking ? booking.client_name : '';
   document.getElementById('checkout-client-contact').value = booking ? (booking.client_contact || '') : '';
+  document.getElementById('checkout-client-email').value = booking ? (booking.client_email || '') : '';
 
   fillStylistOptions(document.getElementById('checkout-stylist'), false);
   if (booking && booking.requested_stylist_id) document.getElementById('checkout-stylist').value = booking.requested_stylist_id;
@@ -676,6 +679,30 @@ function renderCheckoutCart() {
   document.getElementById('checkout-commission').textContent = stylist ? peso(commission) + ` (${esc(stylist.name)})` : '—';
 }
 
+// Best-effort — a failed receipt email shouldn't block or roll back a
+// checkout that's already been logged locally, so this doesn't alert on
+// failure the way the Reservations tab's Approve/Reject does.
+async function sendCheckoutReceipt({ email, fullName, items, total, paymentMethod, staffName }) {
+  try {
+    const res = await fetch(VERCEL_API_BASE + '/api/send-checkout-receipt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        fullName,
+        items: items.map(i => ({ name: i.name, price: i.price })),
+        total,
+        paymentMethod: paymentMethod === 'gcash' ? 'GCash' : 'Cash',
+        staffName,
+        token: SETTINGS.token || '',
+      }),
+    });
+    if (!res.ok) console.error('Checkout receipt email failed', res.status);
+  } catch (err) {
+    console.error('Checkout receipt email error', err);
+  }
+}
+
 function bindCheckoutActions() {
   document.getElementById('checkout-add-service').addEventListener('click', () => {
     const sel = document.getElementById('checkout-service-add');
@@ -698,13 +725,14 @@ function bindCheckoutActions() {
     e.preventDefault();
     const name = document.getElementById('checkout-client-name').value.trim();
     const contact = document.getElementById('checkout-client-contact').value.trim();
+    const email = document.getElementById('checkout-client-email').value.trim();
     const stylistId = document.getElementById('checkout-stylist').value;
     const payment = document.getElementById('checkout-payment').value;
     if (!name || !checkoutCart.length || !stylistId) {
       alert('Add a client name, at least one service, and a stylist before completing checkout.');
       return;
     }
-    const client = getOrCreateClient(name, contact);
+    const client = getOrCreateClient(name, contact, email);
     client.last_visit_date = todayStr();
     client.total_visits = (client.total_visits || 0) + 1;
 
@@ -731,6 +759,8 @@ function bindCheckoutActions() {
       const booking = DB.bookings.find(b => b.id === ACTIVE_QUEUE_ID);
       if (booking) { booking.status = 'completed'; booking.client_id = client.id; }
     }
+
+    if (email) sendCheckoutReceipt({ email, fullName: name, items: checkoutCart.slice(), total: amount, paymentMethod: payment, staffName: stylist.name });
 
     saveDB();
     ACTIVE_QUEUE_ID = null;

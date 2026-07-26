@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const { confirmReservation } = require('./_lib/reservation');
+const { sendEmail, paymentReceiptEmail } = require('./_lib/email');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -69,6 +70,21 @@ module.exports = async (req, res) => {
     if (result.ok === false) {
       res.status(500).json({ error: 'Failed to persist reservation' });
       return;
+    }
+
+    // Card payments have no separate staff-approval step (unlike GCash manual
+    // transfers), so the receipt goes out right here, the moment Stripe
+    // confirms payment — best-effort, same as the SukiDesk push above.
+    if (email && !result.alreadyProcessed) {
+      const { subject, html } = paymentReceiptEmail({
+        fullName,
+        serviceName,
+        date,
+        time,
+        price,
+        paymentMethod: 'Card',
+      });
+      await sendEmail({ to: email, subject, html });
     }
 
     res.status(200).json({ received: true, alreadyProcessed: !!result.alreadyProcessed });

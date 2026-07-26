@@ -103,6 +103,7 @@ module.exports = async (req, res) => {
       serviceName: serviceName || result.reservation.serviceName,
       date,
       time,
+      price: result.reservation.price,
     });
     emailResult = await sendEmail({ to: email, subject, html });
   }
