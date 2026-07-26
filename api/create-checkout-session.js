@@ -52,34 +52,32 @@ module.exports = async (req, res) => {
     }
   }
 
-  const { serviceId, date, time, fullName, phone, email } = body || {};
+  const { serviceIds, date, time, fullName, phone, email } = body || {};
 
-  const validation = await validateBooking({ serviceId, date, time, fullName, phone, email });
+  const validation = await validateBooking({ serviceIds, date, time, fullName, phone, email });
   if (validation.error) {
     res.status(validation.status).json({ error: validation.error });
     return;
   }
-  const { service, firstName, phoneLast4 } = validation;
+  const { services, totalPrice, combinedName, firstName, phoneLast4 } = validation;
 
   let session;
   try {
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'php',
-            unit_amount: service.price * 100,
-            product_data: { name: service.name },
-          },
-          quantity: 1,
+      line_items: services.map((service) => ({
+        price_data: {
+          currency: 'php',
+          unit_amount: service.price * 100,
+          product_data: { name: service.name },
         },
-      ],
+        quantity: 1,
+      })),
       customer_email: email,
       metadata: {
-        serviceId: service.id,
-        serviceName: service.name,
-        price: String(service.price),
+        serviceId: services.map((s) => s.id).join(','),
+        serviceName: combinedName,
+        price: String(totalPrice),
         date,
         time,
         firstName,

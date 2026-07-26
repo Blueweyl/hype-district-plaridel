@@ -48,21 +48,21 @@ module.exports = async (req, res) => {
     }
   }
 
-  const { serviceId, date, time, fullName, phone, email } = body || {};
+  const { serviceIds, date, time, fullName, phone, email } = body || {};
 
-  const validation = await validateBooking({ serviceId, date, time, fullName, phone, email });
+  const validation = await validateBooking({ serviceIds, date, time, fullName, phone, email });
   if (validation.error) {
     res.status(validation.status).json({ error: validation.error });
     return;
   }
-  const { service, firstName, phoneLast4 } = validation;
+  const { services, totalPrice, combinedName, firstName, phoneLast4 } = validation;
 
   // Metadata values must be strings (PayMongo requirement) — this is how the
   // webhook recovers who/what/when, mirroring the Stripe session's metadata.
   const metadata = {
-    serviceId: service.id,
-    serviceName: service.name,
-    price: String(service.price),
+    serviceId: services.map((s) => s.id).join(','),
+    serviceName: combinedName,
+    price: String(totalPrice),
     date,
     time,
     firstName,
@@ -76,18 +76,16 @@ module.exports = async (req, res) => {
   try {
     session = await createCheckoutSession({
       secretKey: process.env.PAYMONGO_SECRET_KEY,
-      lineItems: [
-        {
-          amount: service.price * 100,
-          currency: 'PHP',
-          name: service.name,
-          quantity: 1,
-        },
-      ],
+      lineItems: services.map((service) => ({
+        amount: service.price * 100,
+        currency: 'PHP',
+        name: service.name,
+        quantity: 1,
+      })),
       paymentMethodTypes: ['gcash'],
       successUrl: `${SITE_BASE_URL}/reserve.html?success=1&provider=paymongo`,
       cancelUrl: `${SITE_BASE_URL}/reserve.html?canceled=1`,
-      description: `${service.name} — Hype District Plaridel`,
+      description: `${combinedName} — Hype District Plaridel`,
       metadata,
     });
   } catch (err) {

@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
   }
 
   const {
-    serviceId,
+    serviceIds,
     date,
     time,
     fullName,
@@ -71,12 +71,12 @@ module.exports = async (req, res) => {
     proofImageMimeType,
   } = body || {};
 
-  const validation = await validateBooking({ serviceId, date, time, fullName, phone, email });
+  const validation = await validateBooking({ serviceIds, date, time, fullName, phone, email });
   if (validation.error) {
     res.status(validation.status).json({ error: validation.error });
     return;
   }
-  const { service, firstName, phoneLast4 } = validation;
+  const { services, totalPrice, combinedName, firstName, phoneLast4 } = validation;
 
   if (!proofImageBase64 || !proofImageMimeType) {
     res.status(400).json({ error: 'Please attach a screenshot of your GCash payment.' });
@@ -99,9 +99,9 @@ module.exports = async (req, res) => {
     result = await confirmReservation({
       date,
       time,
-      serviceId: service.id,
-      serviceName: service.name,
-      price: service.price,
+      serviceId: services.map((s) => s.id).join(','),
+      serviceName: combinedName,
+      price: totalPrice,
       firstName,
       phoneLast4,
       fullName,

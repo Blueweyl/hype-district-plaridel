@@ -64,9 +64,15 @@ collections:
     fields:
       - { label: "Date", name: "date", widget: "string" }
       - { label: "Time", name: "time", widget: "string" }
-      - { label: "Service ID", name: "serviceId", widget: "string" }
-      - { label: "Service Name", name: "serviceName", widget: "string" }
-      - { label: "Price (PHP)", name: "price", widget: "number" }
+      - label: "Service ID(s)"
+        name: "serviceId"
+        widget: "string"
+        hint: "Comma-separated if the customer picked more than one service (e.g. \"classic-haircut-fade,full-grooming\")."
+      - label: "Service Name"
+        name: "serviceName"
+        widget: "string"
+        hint: "Combined with \" + \" for multi-service bookings, e.g. \"Classic Haircuts & Fades + Full Grooming Experience\"."
+      - { label: "Price (PHP)", name: "price", widget: "number", hint: "Sum of all selected services." }
       - { label: "First Name", name: "firstName", widget: "string" }
       - { label: "Phone (last 4)", name: "phoneLast4", widget: "string" }
       - label: "Payment Provider"

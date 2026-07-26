@@ -21,10 +21,17 @@
   const state = {
     config: null,
     availability: {},
-    selectedService: null,
+    selectedServices: [],
     selectedDate: null,
     selectedTime: null,
   };
+
+  // Multiple services can be picked for one booking (e.g. haircut + beard
+  // trim) — they still share a single fixed-length slot rather than each
+  // consuming its own, so total price is just the sum of what's selected.
+  function totalPrice() {
+    return state.selectedServices.reduce((sum, s) => sum + s.price, 0);
+  }
 
   const els = {};
 
@@ -77,19 +84,24 @@
       label.className = 'service-pill';
       label.dataset.serviceId = service.id;
       label.innerHTML =
-        '<input type="radio" name="service" value="' + service.id + '">' +
+        '<input type="checkbox" value="' + service.id + '">' +
         '<span class="service-pill-name">' + service.name + '</span>' +
         '<span class="service-pill-price">' + formatPeso(service.price) + '</span>';
-      label.querySelector('input').addEventListener('change', () => selectService(service));
+      label.querySelector('input').addEventListener('change', (e) => toggleService(service, e.target.checked));
       list.appendChild(label);
     });
   }
 
-  function selectService(service) {
-    state.selectedService = service;
-    els.serviceList.querySelectorAll('.service-pill').forEach((el) => {
-      el.classList.toggle('selected', el.dataset.serviceId === service.id);
-    });
+  function toggleService(service, checked) {
+    if (checked) {
+      if (!state.selectedServices.some((s) => s.id === service.id)) {
+        state.selectedServices.push(service);
+      }
+    } else {
+      state.selectedServices = state.selectedServices.filter((s) => s.id !== service.id);
+    }
+    const label = els.serviceList.querySelector('[data-service-id="' + service.id + '"]');
+    if (label) label.classList.toggle('selected', checked);
     updateSummary();
   }
 
@@ -144,17 +156,18 @@
   }
 
   function updateSummary() {
-    const ready = state.selectedService && state.selectedDate && state.selectedTime;
-    els.totalAmount.textContent = state.selectedService ? formatPeso(state.selectedService.price) : '₱0';
+    const hasService = state.selectedServices.length > 0;
+    const ready = hasService && state.selectedDate && state.selectedTime;
+    els.totalAmount.textContent = hasService ? formatPeso(totalPrice()) : '₱0';
 
     els.payBtn.disabled = !ready;
     els.gcashToggle.disabled = !ready;
 
     if (ready) {
-      els.payBtn.textContent = 'Pay with Card — ' + formatPeso(state.selectedService.price);
-      els.gcashToggle.textContent = 'Pay with GCash — ' + formatPeso(state.selectedService.price);
-      els.gcashAmount.textContent = formatPeso(state.selectedService.price);
-    } else if (state.selectedService) {
+      els.payBtn.textContent = 'Pay with Card — ' + formatPeso(totalPrice());
+      els.gcashToggle.textContent = 'Pay with GCash — ' + formatPeso(totalPrice());
+      els.gcashAmount.textContent = formatPeso(totalPrice());
+    } else if (hasService) {
       els.payBtn.textContent = 'Pick a date & time';
       els.gcashToggle.textContent = 'Pick a date & time';
     } else {
@@ -206,7 +219,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          serviceId: state.selectedService.id,
+          serviceIds: state.selectedServices.map((s) => s.id),
           date: state.selectedDate,
           time: state.selectedTime,
           fullName,
@@ -259,7 +272,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          serviceId: state.selectedService.id,
+          serviceIds: state.selectedServices.map((s) => s.id),
           date: state.selectedDate,
           time: state.selectedTime,
           fullName,
@@ -306,8 +319,8 @@
     const phone = els.phone.value.trim();
     const email = els.email.value.trim();
 
-    if (!state.selectedService || !state.selectedDate || !state.selectedTime) {
-      showError('Please choose a service, date, and time.');
+    if (!state.selectedServices.length || !state.selectedDate || !state.selectedTime) {
+      showError('Please choose at least one service, a date, and a time.');
       return;
     }
     if (!fullName || !phone || !email) {
