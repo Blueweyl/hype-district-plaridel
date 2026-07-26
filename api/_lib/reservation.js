@@ -29,6 +29,27 @@ async function updateAvailabilityIndex(date, time, attempt = 0) {
   }
 }
 
+async function removeFromAvailabilityIndex(date, time, attempt = 0) {
+  try {
+    const file = await getFile('content/availability.json');
+    if (!file) return;
+    const data = JSON.parse(file.content);
+    if (!data[date]) return;
+    data[date] = data[date].filter((t) => t !== time);
+    if (!data[date].length) delete data[date];
+
+    const putRes = await putFile('content/availability.json', data, `Release availability: ${date} ${time}`, file.sha);
+
+    if (putRes.status === 409 && attempt < 2) {
+      await removeFromAvailabilityIndex(date, time, attempt + 1);
+    } else if (!putRes.ok && putRes.status !== 409) {
+      console.error('Failed to release availability index', putRes.status, await putRes.text());
+    }
+  } catch (err) {
+    console.error('Availability release error', err);
+  }
+}
+
 // Best-effort push of the full booking (name/phone/email — never written to the
 // public repo) into the SukiDesk Google Sheet, so staff can see who's coming in
 // without needing to look it up in the payment provider's dashboard. If this
@@ -138,4 +159,38 @@ async function confirmReservation({
   return { ok: true };
 }
 
-module.exports = { confirmReservation };
+// Staff accept/reject of a payment_pending GCash reservation, driven from the
+// SukiDesk app's Reservations tab (see api/update-reservation-status.js).
+// This is the one place a reservation file is ever *updated* rather than
+// create-only-written. On reject, the slot is released back to
+// availability.json since the payment was never actually verified.
+async function resolvePendingReservation({ date, time, approve }) {
+  const path = `content/reservations/${date}-${time.replace(':', '')}.json`;
+  const file = await getFile(path);
+  if (!file) {
+    return { notFound: true };
+  }
+
+  const reservation = JSON.parse(file.content);
+  reservation.status = approve ? 'confirmed' : 'payment_rejected';
+  reservation.statusUpdatedAt = new Date().toISOString();
+
+  const putRes = await putFile(
+    path,
+    reservation,
+    `Reservation ${approve ? 'confirmed' : 'rejected'}: ${date} ${time}`,
+    file.sha
+  );
+  if (!putRes.ok) {
+    console.error('Failed to update reservation status', putRes.status, await putRes.text());
+    return { ok: false };
+  }
+
+  if (!approve) {
+    await removeFromAvailabilityIndex(date, time);
+  }
+
+  return { ok: true, reservation };
+}
+
+module.exports = { confirmReservation, resolvePendingReservation };

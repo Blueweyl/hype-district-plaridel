@@ -5,6 +5,9 @@
 
 const DB_KEY = 'sukidesk_db_v1';
 const SESSION_KEY = 'sukidesk_session_v1';
+// Same Vercel API project js/reserve.js talks to — used here for
+// api/update-reservation-status (accept/reject a pending GCash payment).
+const VERCEL_API_BASE = 'https://hype-district-plaridel.vercel.app';
 
 function uid(prefix) {
   return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -381,23 +384,73 @@ function renderReservations() {
             <td>${esc(b.client_email || '—')}</td>
             <td><span class="badge badge-${b.status}">${esc((b.status || '').replace('_', ' '))}</span></td>
             <td>${b.proof_url ? `<a href="${esc(b.proof_url)}" target="_blank" rel="noopener">View</a>` : '—'}</td>
-            <td>${b.status === 'payment_pending' ? `<button class="btn-sm btn-sm-primary" data-act="confirm-payment" data-id="${b.id}">Confirm Payment</button>` : ''}</td>
+            <td>${b.status === 'payment_pending' ? `
+              <button class="btn-sm btn-sm-primary" data-act="confirm-payment" data-id="${b.id}">Approve</button>
+              <button class="btn-sm btn-sm-danger" data-act="reject-payment" data-id="${b.id}">Reject</button>
+            ` : ''}</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>`;
 }
 
+// Tells the Vercel API to update the public repo's reservation status (and,
+// on reject, release the slot back to availability) and email the customer.
+// The booking's local status is updated either way so staff see the result
+// immediately even if that network call is slow/fails — but a failure means
+// the customer likely never got their email, so it's surfaced with an alert
+// rather than swallowed silently.
+async function resolvePendingPayment(booking, approve) {
+  const scheduled = booking.scheduled_time || '';
+  const date = scheduled.slice(0, 10);
+  const time = scheduled.slice(11, 16);
+  if (!date || !time) {
+    alert('This booking has no scheduled time on file — cannot update it.');
+    return;
+  }
+
+  const verb = approve ? 'approve' : 'reject';
+  if (!confirm(`${approve ? 'Approve' : 'Reject'} ${booking.client_name}'s GCash payment${approve ? '' : ' and release this slot'}?`)) return;
+
+  booking.status = approve ? 'confirmed' : 'payment_rejected';
+  saveDB();
+  renderReservations();
+
+  try {
+    const res = await fetch(VERCEL_API_BASE + '/api/update-reservation-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date,
+        time,
+        action: approve ? 'confirm' : 'reject',
+        token: SETTINGS.token || '',
+        fullName: booking.client_name,
+        email: booking.client_email,
+        serviceName: booking.service,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert(`Booking marked ${booking.status} here, but the server update failed (${data.error || res.status}) — the customer may not have been emailed. You may need to retry.`);
+      return;
+    }
+    if (!data.emailSent) {
+      alert(`Booking marked ${booking.status}, but no confirmation email was sent (check RESEND_API_KEY is set on the Vercel project, and that this customer has an email on file).`);
+    }
+  } catch (err) {
+    alert(`Booking marked ${booking.status} here, but couldn't reach the server to ${verb} it there or email the customer. Check your connection and try again.`);
+  }
+}
+
 function bindReservationsActions() {
   document.getElementById('reservations-list').addEventListener('click', e => {
     const btn = e.target.closest('button');
-    if (!btn || btn.dataset.act !== 'confirm-payment') return;
+    if (!btn) return;
     const booking = DB.bookings.find(b => b.id === btn.dataset.id);
     if (!booking) return;
-    if (!confirm(`Mark ${booking.client_name}'s GCash payment as verified and confirm this booking?`)) return;
-    booking.status = 'confirmed';
-    saveDB();
-    renderReservations();
+    if (btn.dataset.act === 'confirm-payment') resolvePendingPayment(booking, true);
+    if (btn.dataset.act === 'reject-payment') resolvePendingPayment(booking, false);
   });
 }
 

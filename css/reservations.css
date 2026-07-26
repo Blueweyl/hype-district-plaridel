@@ -56,6 +56,11 @@
   color: var(--gold-light);
 }
 
+.status-badge.status-payment_rejected {
+  background: rgba(224, 138, 138, 0.15);
+  color: #e08a8a;
+}
+
 @media (max-width: 600px) {
   .reservations-table {
     display: block;

@@ -82,8 +82,10 @@ collections:
         name: "status"
         widget: "select"
         required: false
-        hint: "GCash manual-transfer bookings start as payment_pending until staff verify the screenshot in SukiDesk."
+        hint: "GCash manual-transfer bookings start as payment_pending until staff approve/reject the screenshot in SukiDesk."
         options:
           - { label: "Confirmed", value: "confirmed" }
           - { label: "Payment Pending", value: "payment_pending" }
+          - { label: "Payment Rejected", value: "payment_rejected" }
       - { label: "Confirmed At", name: "confirmedAt", widget: "datetime" }
+      - { label: "Status Updated At", name: "statusUpdatedAt", widget: "datetime", required: false }
