@@ -353,7 +353,78 @@ function fillServiceOptions(selectEl) {
 }
 
 /* ---------- RESERVATIONS (online bookings, synced from the website via Sheets) ---------- */
+
+// Hours come from the same config the public reserve.html page reads, fetched
+// once and cached — this view mirrors that page's slot grid, but for staff.
+let BOOKING_HOURS = null;
+async function loadBookingHours() {
+  if (BOOKING_HOURS) return BOOKING_HOURS;
+  try {
+    const res = await fetch('content/booking-config.json', { cache: 'no-store' });
+    const data = await res.json();
+    BOOKING_HOURS = data.hours;
+  } catch (err) {
+    BOOKING_HOURS = { openTime: '09:00', closeTime: '21:00', slotMinutes: 45 };
+  }
+  return BOOKING_HOURS;
+}
+
+function generateDaySlots(hours) {
+  const [openH, openM] = hours.openTime.split(':').map(Number);
+  const [closeH, closeM] = hours.closeTime.split(':').map(Number);
+  const open = openH * 60 + openM;
+  const close = closeH * 60 + closeM;
+  const slots = [];
+  for (let t = open; t + hours.slotMinutes <= close; t += hours.slotMinutes) {
+    const h = String(Math.floor(t / 60)).padStart(2, '0');
+    const m = String(t % 60).padStart(2, '0');
+    slots.push(`${h}:${m}`);
+  }
+  return slots;
+}
+
+function formatTime12h(time) {
+  const [h, m] = time.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+// scheduled_time is written server-side as `${date}T${time}:00+08:00` (see
+// api/_lib/reservation.js#confirmReservation) — matching that exact string is
+// simpler and less error-prone than re-parsing it back into a Date.
+function findBookingForSlot(date, time) {
+  const target = `${date}T${time}:00+08:00`;
+  return DB.bookings.find(b => b.source === 'online' && b.scheduled_time === target);
+}
+
+async function renderReservationsDayGrid(date) {
+  const grid = document.getElementById('reservations-day-grid');
+  if (!grid) return;
+  if (!date) { grid.innerHTML = ''; return; }
+
+  const hours = await loadBookingHours();
+  const slots = generateDaySlots(hours);
+  grid.innerHTML = slots.map(time => {
+    const booking = findBookingForSlot(date, time);
+    if (!booking) {
+      return `<div class="res-slot res-slot-open"><span class="res-slot-time">${formatTime12h(time)}</span></div>`;
+    }
+    const firstName = (booking.client_name || '').trim().split(/\s+/)[0] || '—';
+    return `<div class="res-slot res-slot-taken status-${booking.status}">
+      <span class="res-slot-time">${formatTime12h(time)}</span>
+      <span class="res-slot-name">${esc(firstName)}</span>
+    </div>`;
+  }).join('');
+}
+
 function renderReservations() {
+  const dayInput = document.getElementById('reservations-day');
+  if (dayInput) {
+    if (!dayInput.value) dayInput.value = todayStr();
+    renderReservationsDayGrid(dayInput.value);
+  }
+
   const list = DB.bookings
     .filter(b => b.source === 'online')
     .sort((a, b) => (a.scheduled_time || '').localeCompare(b.scheduled_time || ''));
@@ -452,6 +523,10 @@ function bindReservationsActions() {
     if (btn.dataset.act === 'confirm-payment') resolvePendingPayment(booking, true);
     if (btn.dataset.act === 'reject-payment') resolvePendingPayment(booking, false);
   });
+
+  const dayInput = document.getElementById('reservations-day');
+  dayInput.value = todayStr();
+  dayInput.addEventListener('change', () => renderReservationsDayGrid(dayInput.value));
 }
 
 /* ---------- CLIENTS ---------- */

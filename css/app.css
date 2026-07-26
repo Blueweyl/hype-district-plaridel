@@ -249,6 +249,74 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 .badge-payment_pending { background: #3a2f10; color: var(--gold-light); }
 .badge-payment_rejected { background: #3a1616; color: #e08a8a; }
 
+/* ---------- Reservations day grid ---------- */
+.reservations-day-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+.reservations-day-picker label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.reservations-day-picker input[type="date"] {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text-main);
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.res-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.res-slot {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 6px;
+  text-align: center;
+}
+.res-slot-time {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.res-slot-open {
+  background: var(--bg-panel);
+  opacity: 0.5;
+}
+.res-slot-taken {
+  background: var(--bg-panel-2);
+}
+.res-slot-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.res-slot-taken.status-confirmed { border-color: #7fd99a; }
+.res-slot-taken.status-confirmed .res-slot-name { color: #7fd99a; }
+.res-slot-taken.status-payment_pending { border-color: var(--gold); }
+.res-slot-taken.status-payment_pending .res-slot-name { color: var(--gold-light); }
+.res-slot-taken.status-payment_rejected,
+.res-slot-taken.status-no_show {
+  border-color: #e08a8a;
+  opacity: 0.7;
+}
+.res-slot-taken.status-payment_rejected .res-slot-name,
+.res-slot-taken.status-no_show .res-slot-name {
+  color: #e08a8a;
+}
+
 /* ---------- Clients ---------- */
 .client-list { display: flex; flex-direction: column; }
 .client-row {
