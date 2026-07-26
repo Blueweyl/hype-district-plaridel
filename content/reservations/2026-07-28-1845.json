@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-28",
+  "time": "18:45",
+  "serviceId": "full-grooming,korean-perm",
+  "serviceName": "Full Grooming Experience + Korean Perm",
+  "price": 1500,
+  "firstName": "Ivan",
+  "phoneLast4": "7831",
+  "paymentProvider": "gcash_manual",
+  "providerSessionId": "gcash_manual_1785067884031_gffdpp",
+  "status": "payment_pending",
+  "confirmedAt": "2026-07-26T12:11:24.141Z"
+}
