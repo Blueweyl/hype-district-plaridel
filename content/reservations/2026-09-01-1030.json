@@ -8,7 +8,7 @@
   "phoneLast4": "4567",
   "paymentProvider": "gcash_manual",
   "providerSessionId": "gcash_manual_1785062641722_bh67a1",
-  "status": "payment_rejected",
+  "status": "confirmed",
   "confirmedAt": "2026-07-26T10:44:01.835Z",
-  "statusUpdatedAt": "2026-07-26T10:44:57.312Z"
+  "statusUpdatedAt": "2026-07-26T12:10:25.314Z"
 }
