@@ -73,7 +73,8 @@ module.exports = async (req, res) => {
   const result = await sendEmail({ to: email, subject, html });
 
   if (result.ok === false) {
-    res.status(502).json({ error: 'Failed to send receipt email' });
+    const detail = result.error && (result.error.message || JSON.stringify(result.error));
+    res.status(502).json({ error: detail ? `Failed to send receipt email: ${detail}` : 'Failed to send receipt email' });
     return;
   }
 

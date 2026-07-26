@@ -108,5 +108,9 @@ module.exports = async (req, res) => {
     emailResult = await sendEmail({ to: email, subject, html });
   }
 
-  res.status(200).json({ ok: true, emailSent: !!emailResult.ok });
+  res.status(200).json({
+    ok: true,
+    emailSent: !!emailResult.ok,
+    emailError: emailResult.ok ? undefined : (emailResult.error && (emailResult.error.message || JSON.stringify(emailResult.error))),
+  });
 };

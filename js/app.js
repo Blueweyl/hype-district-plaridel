@@ -507,7 +507,7 @@ async function resolvePendingPayment(booking, approve) {
       return;
     }
     if (!data.emailSent) {
-      alert(`Booking marked ${booking.status}, but no confirmation email was sent (check RESEND_API_KEY is set on the Vercel project, and that this customer has an email on file).`);
+      alert(`Booking marked ${booking.status}, but no confirmation email was sent.${data.emailError ? ` Reason: ${data.emailError}` : ' (Check RESEND_API_KEY is set on the Vercel project, and that this customer has an email on file.)'}`);
     }
   } catch (err) {
     alert(`Booking marked ${booking.status} here, but couldn't reach the server to ${verb} it there or email the customer. Check your connection and try again.`);
@@ -697,7 +697,10 @@ async function sendCheckoutReceipt({ email, fullName, items, total, paymentMetho
         token: SETTINGS.token || '',
       }),
     });
-    if (!res.ok) console.error('Checkout receipt email failed', res.status);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      console.error('Checkout receipt email failed', res.status, data.error);
+    }
   } catch (err) {
     console.error('Checkout receipt email error', err);
   }
