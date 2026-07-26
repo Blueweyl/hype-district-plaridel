@@ -8,6 +8,7 @@
   "phoneLast4": "0481",
   "paymentProvider": "gcash_manual",
   "providerSessionId": "gcash_manual_1785071777671_pbeen5",
-  "status": "payment_pending",
-  "confirmedAt": "2026-07-26T13:16:17.781Z"
+  "status": "confirmed",
+  "confirmedAt": "2026-07-26T13:16:17.781Z",
+  "statusUpdatedAt": "2026-07-26T13:17:32.246Z"
 }
