@@ -1,0 +1,13 @@
+{
+  "date": "2026-08-15",
+  "time": "10:30",
+  "serviceId": "classic-haircut-fade",
+  "serviceName": "Classic Haircuts & Fades",
+  "price": 250,
+  "firstName": "Test",
+  "phoneLast4": "4567",
+  "paymentProvider": "gcash_manual",
+  "providerSessionId": "gcash_manual_1785050591033_3fa6aa",
+  "status": "payment_pending",
+  "confirmedAt": "2026-07-26T07:23:11.157Z"
+}
