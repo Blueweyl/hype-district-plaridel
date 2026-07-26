@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-27",
+  "time": "10:30",
+  "serviceId": "classic-haircut-fade,scalp-treatment,full-grooming",
+  "serviceName": "Classic Haircuts & Fades + Scalp Treatment + Full Grooming Experience",
+  "price": 2550,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_b1SMnewTa2v3KWIId9mKheOns8XCs2vRiLlXLUo86O4TeBBQk1vmGur81L",
+  "status": "confirmed",
+  "confirmedAt": "2026-07-26T13:04:20.204Z"
+}
