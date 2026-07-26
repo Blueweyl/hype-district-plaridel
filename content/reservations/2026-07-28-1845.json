@@ -8,6 +8,7 @@
   "phoneLast4": "7831",
   "paymentProvider": "gcash_manual",
   "providerSessionId": "gcash_manual_1785067884031_gffdpp",
-  "status": "payment_pending",
-  "confirmedAt": "2026-07-26T12:11:24.141Z"
+  "status": "confirmed",
+  "confirmedAt": "2026-07-26T12:11:24.141Z",
+  "statusUpdatedAt": "2026-07-26T12:12:20.200Z"
 }
