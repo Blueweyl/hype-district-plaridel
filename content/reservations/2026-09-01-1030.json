@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-01",
+  "time": "10:30",
+  "serviceId": "classic-haircut-fade,scalp-treatment",
+  "serviceName": "Classic Haircuts & Fades + Scalp Treatment",
+  "price": 2050,
+  "firstName": "Multi",
+  "phoneLast4": "4567",
+  "paymentProvider": "gcash_manual",
+  "providerSessionId": "gcash_manual_1785062641722_bh67a1",
+  "status": "payment_pending",
+  "confirmedAt": "2026-07-26T10:44:01.835Z"
+}
