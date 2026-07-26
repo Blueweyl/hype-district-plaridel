@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-27",
+  "time": "09:45",
+  "serviceId": "classic-haircut-fade,full-grooming",
+  "serviceName": "Classic Haircuts & Fades + Full Grooming Experience",
+  "price": 750,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "gcash_manual",
+  "providerSessionId": "gcash_manual_1785062817633_3s6pvm",
+  "status": "payment_pending",
+  "confirmedAt": "2026-07-26T10:46:57.751Z"
+}
