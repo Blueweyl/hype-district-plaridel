@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-28",
+  "time": "09:00",
+  "serviceId": "classic-haircut-fade,korean-perm",
+  "serviceName": "Classic Haircuts & Fades + Korean Perm",
+  "price": 1250,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_b1iWj5PRGgN8NaJm1U6pFGogIJEOQoFwpXTkzlj00tNHUtZAt4iuMHLaks",
+  "status": "confirmed",
+  "confirmedAt": "2026-07-26T11:59:23.045Z"
+}
