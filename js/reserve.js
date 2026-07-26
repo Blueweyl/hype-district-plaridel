@@ -1,14 +1,22 @@
-/* Reservation + payment flow. No card fields live on this page at all —
+/* Reservation + payment flow. Card has no card fields on this page at all —
    the server creates a Stripe Checkout Session and this script just
-   redirects to Stripe's own hosted, PCI-compliant payment page. The
-   booking is only ever confirmed by the server-side Stripe webhook, never
-   by this page's success redirect alone. */
+   redirects to Stripe's own hosted, PCI-compliant payment page, confirmed
+   only by the server-side Stripe webhook, never this page's success redirect.
+
+   GCash is a direct manual transfer instead of a hosted checkout: this script
+   shows the shop's GCash number/QR, the customer uploads a screenshot of the
+   transfer, and that's POSTed straight to api/create-gcash-request — which
+   books the slot immediately as status:'payment_pending' (no webhook is
+   possible for a manual transfer). Staff verify the screenshot in SukiDesk. */
 
 (function () {
   const VERCEL_API_BASE = 'https://hype-district-plaridel.vercel.app';
   const CONFIG_URL = 'content/booking-config.json';
   const AVAILABILITY_URL =
     'https://raw.githubusercontent.com/Blueweyl/hype-district-plaridel/master/content/availability.json';
+  const GCASH_NUMBER_DIGITS = '09612720481';
+  const MAX_PROOF_BYTES = 4 * 1024 * 1024;
+  const ALLOWED_PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
   const state = {
     config: null,
@@ -140,17 +148,18 @@
     els.totalAmount.textContent = state.selectedService ? formatPeso(state.selectedService.price) : '₱0';
 
     els.payBtn.disabled = !ready;
-    els.payBtnGcash.disabled = !ready;
+    els.gcashToggle.disabled = !ready;
 
     if (ready) {
       els.payBtn.textContent = 'Pay with Card — ' + formatPeso(state.selectedService.price);
-      els.payBtnGcash.textContent = 'Pay with GCash — ' + formatPeso(state.selectedService.price);
+      els.gcashToggle.textContent = 'Pay with GCash — ' + formatPeso(state.selectedService.price);
+      els.gcashAmount.textContent = formatPeso(state.selectedService.price);
     } else if (state.selectedService) {
       els.payBtn.textContent = 'Pick a date & time';
-      els.payBtnGcash.textContent = 'Pick a date & time';
+      els.gcashToggle.textContent = 'Pick a date & time';
     } else {
       els.payBtn.textContent = 'Select a Service';
-      els.payBtnGcash.textContent = 'Select a Service';
+      els.gcashToggle.textContent = 'Select a Service';
     }
   }
 
@@ -178,40 +187,22 @@
     els.formError.hidden = !msg;
   }
 
-  const PROVIDER_ENDPOINTS = {
-    stripe: '/api/create-checkout-session',
-    paymongo: '/api/create-paymongo-checkout',
-  };
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]);
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+  }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    showError('');
-
-    const fullName = els.name.value.trim();
-    const phone = els.phone.value.trim();
-    const email = els.email.value.trim();
-
-    if (!state.selectedService || !state.selectedDate || !state.selectedTime) {
-      showError('Please choose a service, date, and time.');
-      return;
-    }
-    if (!fullName || !phone || !email) {
-      showError('Please fill in your name, phone, and email.');
-      return;
-    }
-
-    // e.submitter is which of the two <button type="submit"> was actually
-    // clicked — that's how we know card (Stripe) vs GCash (PayMongo).
-    const provider = (e.submitter && e.submitter.dataset.provider) || 'stripe';
-    const endpoint = PROVIDER_ENDPOINTS[provider];
-    const clickedBtn = provider === 'paymongo' ? els.payBtnGcash : els.payBtn;
-
+  async function handleStripeSubmit({ fullName, phone, email }) {
     els.payBtn.disabled = true;
-    els.payBtnGcash.disabled = true;
-    clickedBtn.classList.add('loading');
+    els.gcashToggle.disabled = true;
+    els.payBtn.classList.add('loading');
 
     try {
-      const res = await fetch(VERCEL_API_BASE + endpoint, {
+      const res = await fetch(VERCEL_API_BASE + '/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -240,8 +231,99 @@
       showError('Could not reach the payment service. Please check your connection and try again.');
     }
 
-    clickedBtn.classList.remove('loading');
+    els.payBtn.classList.remove('loading');
     updateSummary();
+  }
+
+  async function handleGcashSubmit({ fullName, phone, email }) {
+    const file = els.gcashProof.files[0];
+    if (!file) {
+      showError('Please upload a screenshot of your GCash payment.');
+      return;
+    }
+    if (!ALLOWED_PROOF_TYPES.includes(file.type)) {
+      showError('Screenshot must be a JPG, PNG, or WEBP image.');
+      return;
+    }
+    if (file.size > MAX_PROOF_BYTES) {
+      showError('That image is too large — please attach a screenshot under 4MB.');
+      return;
+    }
+
+    els.gcashConfirmBtn.disabled = true;
+    els.gcashConfirmBtn.classList.add('loading');
+
+    try {
+      const proofImageBase64 = await fileToBase64(file);
+      const res = await fetch(VERCEL_API_BASE + '/api/create-gcash-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceId: state.selectedService.id,
+          date: state.selectedDate,
+          time: state.selectedTime,
+          fullName,
+          phone,
+          email,
+          gcashReference: els.gcashReference.value.trim(),
+          proofImageBase64,
+          proofImageMimeType: file.type,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'Something went wrong — please try again.');
+        if (res.status === 409) {
+          await loadAvailability();
+          renderSlots();
+        }
+        return;
+      }
+
+      renderGcashPendingStatus();
+      return;
+    } catch (err) {
+      showError('Could not reach the booking service. Please check your connection and try again.');
+    }
+
+    els.gcashConfirmBtn.disabled = false;
+    els.gcashConfirmBtn.classList.remove('loading');
+  }
+
+  function renderGcashPendingStatus() {
+    els.status.className = 'reserve-status pending';
+    els.status.innerHTML =
+      "<strong>Booking request received!</strong> We're verifying your GCash payment and will confirm your slot shortly — you'll get a text or call from us.";
+    els.form.style.display = 'none';
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    showError('');
+
+    const fullName = els.name.value.trim();
+    const phone = els.phone.value.trim();
+    const email = els.email.value.trim();
+
+    if (!state.selectedService || !state.selectedDate || !state.selectedTime) {
+      showError('Please choose a service, date, and time.');
+      return;
+    }
+    if (!fullName || !phone || !email) {
+      showError('Please fill in your name, phone, and email.');
+      return;
+    }
+
+    // e.submitter is which <button type="submit"> was actually clicked —
+    // that's how we know card (Stripe) vs GCash (manual transfer + proof).
+    const provider = (e.submitter && e.submitter.dataset.provider) || 'stripe';
+
+    if (provider === 'gcash') {
+      await handleGcashSubmit({ fullName, phone, email });
+    } else {
+      await handleStripeSubmit({ fullName, phone, email });
+    }
   }
 
   function renderReturnStatus() {
@@ -268,7 +350,13 @@
     els.email = document.getElementById('reserve-email');
     els.totalAmount = document.querySelector('[data-total-amount]');
     els.payBtn = document.querySelector('[data-pay-btn]');
-    els.payBtnGcash = document.querySelector('[data-pay-btn-gcash]');
+    els.gcashToggle = document.querySelector('[data-gcash-toggle]');
+    els.gcashPanel = document.querySelector('[data-gcash-panel]');
+    els.gcashAmount = document.querySelector('[data-gcash-amount]');
+    els.gcashProof = document.getElementById('gcash-proof');
+    els.gcashReference = document.getElementById('gcash-reference');
+    els.gcashConfirmBtn = document.querySelector('[data-pay-btn-gcash-confirm]');
+    els.gcashCopy = document.querySelector('[data-gcash-copy]');
     els.formError = document.querySelector('[data-form-error]');
     els.form = document.getElementById('reserve-form');
     els.status = document.getElementById('reserve-status');
@@ -279,6 +367,23 @@
       state.selectedDate = els.dateInput.value;
       await loadAvailability();
       renderSlots();
+    });
+
+    els.gcashToggle.addEventListener('click', () => {
+      els.gcashPanel.hidden = !els.gcashPanel.hidden;
+      if (!els.gcashPanel.hidden) {
+        els.gcashPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+
+    els.gcashCopy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(GCASH_NUMBER_DIGITS);
+        els.gcashCopy.textContent = 'Copied!';
+        setTimeout(() => { els.gcashCopy.textContent = 'Copy'; }, 1500);
+      } catch (err) {
+        // Clipboard API unavailable — the number is already visible to copy by hand.
+      }
     });
 
     els.form.addEventListener('submit', handleSubmit);

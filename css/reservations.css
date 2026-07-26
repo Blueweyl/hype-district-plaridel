@@ -38,6 +38,24 @@
   font-size: 0.85rem;
 }
 
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.status-badge.status-confirmed {
+  background: rgba(80, 180, 120, 0.15);
+  color: #7fd99a;
+}
+
+.status-badge.status-payment_pending {
+  background: rgba(201, 162, 75, 0.15);
+  color: var(--gold-light);
+}
+
 @media (max-width: 600px) {
   .reservations-table {
     display: block;

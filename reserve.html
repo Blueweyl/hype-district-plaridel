@@ -35,7 +35,7 @@
   <div class="container" style="max-width:820px;">
     <span class="eyebrow">Book Online</span>
     <h1 class="section-title">Reserve Your Appointment</h1>
-    <p class="section-intro">Pick a service, date, and time, and pay securely by card to lock in your slot — no waiting in line. Full service price is charged at booking.</p>
+    <p class="section-intro">Pick a service, date, and time, then pay by card or GCash to lock in your slot — no waiting in line. Full service price is due at booking.</p>
 
     <div id="reserve-status"></div>
 
@@ -78,9 +78,37 @@
         </div>
         <div class="pay-buttons">
           <button type="submit" class="btn btn-primary btn-pay" data-pay-btn data-provider="stripe" disabled>Select a Service</button>
-          <button type="submit" class="btn btn-outline btn-pay" data-pay-btn-gcash data-provider="paymongo" disabled>Pay with GCash</button>
+          <button type="button" class="btn btn-outline btn-pay" data-gcash-toggle disabled>Select a Service</button>
         </div>
       </div>
+
+      <div class="gcash-panel" data-gcash-panel hidden>
+        <h4>Pay via GCash</h4>
+        <p class="step-hint">Send <strong data-gcash-amount>₱0</strong> to the GCash details below, then upload a screenshot of the successful transfer. We'll verify it and confirm your slot shortly after — this isn't instant like the card option.</p>
+
+        <div class="gcash-details">
+          <div class="gcash-qr-wrap">
+            <img src="images/gcash-qr.png" alt="Hype District Plaridel GCash QR code" class="gcash-qr" onerror="this.closest('.gcash-qr-wrap').style.display='none'">
+          </div>
+          <div class="gcash-number-wrap">
+            <span class="gcash-number-label">GCash Number</span>
+            <div class="gcash-number-row">
+              <span class="gcash-number" data-gcash-number>0961 272 0481</span>
+              <button type="button" class="btn-sm" data-gcash-copy>Copy</button>
+            </div>
+            <span class="gcash-hint">Double-check the last 4 digits before sending.</span>
+          </div>
+        </div>
+
+        <label class="gcash-field-label" for="gcash-proof">Upload Payment Screenshot</label>
+        <input type="file" id="gcash-proof" accept="image/png,image/jpeg,image/webp" data-gcash-proof>
+
+        <label class="gcash-field-label" for="gcash-reference">GCash Reference Number (optional)</label>
+        <input type="text" id="gcash-reference" placeholder="e.g. 1234567890123" data-gcash-reference>
+
+        <button type="submit" class="btn btn-primary btn-pay" data-pay-btn-gcash-confirm data-provider="gcash">Submit Booking Request</button>
+      </div>
+
       <p class="form-error" data-form-error hidden></p>
     </form>
   </div>

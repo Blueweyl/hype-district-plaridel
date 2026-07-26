@@ -33,7 +33,10 @@ async function updateAvailabilityIndex(date, time, attempt = 0) {
 // public repo) into the SukiDesk Google Sheet, so staff can see who's coming in
 // without needing to look it up in the payment provider's dashboard. If this
 // fails or isn't configured, the reservation itself is unaffected — the repo
-// commit is the source of truth.
+// commit is the source of truth. `booking.proofImageBase64`/`proofImageMimeType`
+// (GCash manual-transfer bookings only) are consumed by Code.gs's addBooking
+// handler to store the screenshot in Drive — they're not in the Bookings tab's
+// own column list so they never end up written to the sheet as raw base64.
 async function pushToSukiDesk(booking) {
   const url = process.env.SUKIDESK_WEBAPP_URL;
   const token = process.env.SUKIDESK_SECRET;
@@ -54,9 +57,16 @@ async function pushToSukiDesk(booking) {
   }
 }
 
-// `provider` is 'stripe' | 'paymongo'; `providerSessionId` is that provider's
-// checkout session id, stored for support lookups but no longer relied on for
-// idempotency — the create-only GitHub write (no `sha`) is the hard guard.
+// `provider` is 'stripe' | 'paymongo' | 'gcash_manual'; `providerSessionId` is
+// that provider's checkout session id (or a generated id for gcash_manual),
+// stored for support lookups but no longer relied on for idempotency — the
+// create-only GitHub write (no `sha`) is the hard guard.
+//
+// `status` defaults to 'confirmed' (payment already verified by
+// Stripe/PayMongo before this runs). GCash manual-transfer bookings pass
+// 'payment_pending' instead, since there's no webhook to confirm a direct
+// bank transfer — the slot is held on the strength of the uploaded proof
+// screenshot alone, pending a staff check in SukiDesk.
 async function confirmReservation({
   date,
   time,
@@ -70,6 +80,10 @@ async function confirmReservation({
   email,
   provider,
   providerSessionId,
+  status = 'confirmed',
+  gcashReference,
+  proofImageBase64,
+  proofImageMimeType,
 }) {
   const path = `content/reservations/${date}-${time.replace(':', '')}.json`;
 
@@ -88,6 +102,7 @@ async function confirmReservation({
     phoneLast4,
     paymentProvider: provider,
     providerSessionId,
+    status,
     confirmedAt: new Date().toISOString(),
   };
 
@@ -112,9 +127,12 @@ async function confirmReservation({
     requested_stylist_id: '',
     service: serviceName || '',
     source: 'online',
-    status: 'confirmed',
+    status,
+    gcash_reference: gcashReference || '',
     scheduled_time: `${date}T${time}:00+08:00`,
     created_at: new Date().toISOString(),
+    proofImageBase64,
+    proofImageMimeType,
   });
 
   return { ok: true };

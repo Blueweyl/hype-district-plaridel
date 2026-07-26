@@ -55,7 +55,7 @@
       container.innerHTML = `
         <table class="reservations-table">
           <thead>
-            <tr><th>Date</th><th>Time</th><th>Service</th><th>Name</th></tr>
+            <tr><th>Date</th><th>Time</th><th>Service</th><th>Name</th><th>Status</th></tr>
           </thead>
           <tbody>
             ${entries
@@ -66,6 +66,7 @@
                 <td>${formatTime12h(r.time)}</td>
                 <td>${r.serviceName || ''}</td>
                 <td>${r.firstName || ''} <span class="phone-last4">••${r.phoneLast4 || ''}</span></td>
+                <td><span class="status-badge status-${r.status || 'confirmed'}">${(r.status || 'confirmed').replace('_', ' ')}</span></td>
               </tr>`
               )
               .join('')}

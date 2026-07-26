@@ -75,6 +75,15 @@ collections:
         required: false
         options:
           - { label: "Stripe (Card)", value: "stripe" }
-          - { label: "PayMongo (GCash)", value: "paymongo" }
+          - { label: "PayMongo (GCash) — dormant", value: "paymongo" }
+          - { label: "GCash (Manual Transfer)", value: "gcash_manual" }
       - { label: "Provider Session ID", name: "providerSessionId", widget: "string", required: false }
+      - label: "Status"
+        name: "status"
+        widget: "select"
+        required: false
+        hint: "GCash manual-transfer bookings start as payment_pending until staff verify the screenshot in SukiDesk."
+        options:
+          - { label: "Confirmed", value: "confirmed" }
+          - { label: "Payment Pending", value: "payment_pending" }
       - { label: "Confirmed At", name: "confirmedAt", widget: "datetime" }

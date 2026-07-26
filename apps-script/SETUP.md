@@ -87,6 +87,14 @@ If these two variables aren't set, the webhook just skips this step
 silently — the reservation itself (written to the public repo, first name
 + last-4 phone only) is unaffected either way.
 
+GCash bookings paid by direct manual transfer arrive the same way but with
+`status: payment_pending` and a `proof_url` link to the customer's payment
+screenshot (saved in a Drive folder named **"SukiDesk Payment Proofs"**,
+shared view-only-with-link so the URL works straight from the Sheet). Check
+the amount/reference in that screenshot against the GCash app before treating
+the booking as paid — this flow has no automatic payment verification the
+way Stripe/PayMongo do.
+
 ## Notes / limits
 
 - **One writer at a time.** If two devices save changes within the same
@@ -97,5 +105,10 @@ silently — the reservation itself (written to the public repo, first name
 - **Redeploying the script:** if you edit `Code.gs` later, use
   **Deploy > Manage deployments > Edit (pencil icon) > New version** —
   editing the code alone does not update the live Web App URL.
+- **Drive permission:** saving GCash proof screenshots uses Google Drive,
+  a new permission scope beyond Sheets. The first time a GCash booking
+  comes in after updating `Code.gs`, or the first time you re-run/redeploy
+  the script yourself, Google may ask you to re-authorize the script —
+  click through it the same way you did in step 4.
 - You can open the Sheet directly any time to eyeball or manually fix
   data — the app will pick up your edits on its next pull.

@@ -9,8 +9,12 @@
  *   POST { action:'addBooking', token, booking } -> { ok: true }
  *     (POST body is sent as text/plain to avoid a CORS preflight; this script parses it as JSON.)
  *     addBooking appends a single row without touching the rest of the sheet — used by
- *     api/stripe-webhook.js to push online reservations in here (full name/phone/email),
- *     since the webhook only ever has one booking at a time, never the full DB snapshot.
+ *     api/stripe-webhook.js, api/paymongo-webhook.js, and api/create-gcash-request.js to
+ *     push online reservations in here (full name/phone/email), since each call only ever
+ *     has one booking at a time, never the full DB snapshot.
+ *     If booking.proofImageBase64 + proofImageMimeType are present (GCash manual-transfer
+ *     bookings), the screenshot is saved to a "SukiDesk Payment Proofs" Drive folder and its
+ *     link stored in the row's proof_url column instead of the raw image data.
  */
 
 const SHEET_NAMES = {
@@ -24,7 +28,7 @@ const SHEET_NAMES = {
 const SCHEMAS = {
   staff: ['id', 'name', 'pin', 'role', 'commission_type', 'commission_rate', 'contact_number'],
   clients: ['id', 'name', 'contact_number', 'preferred_stylist', 'notes', 'first_visit_date', 'last_visit_date', 'total_visits'],
-  bookings: ['id', 'client_id', 'client_name', 'client_contact', 'client_email', 'requested_stylist_id', 'service', 'source', 'status', 'scheduled_time', 'created_at'],
+  bookings: ['id', 'client_id', 'client_name', 'client_contact', 'client_email', 'requested_stylist_id', 'service', 'source', 'status', 'scheduled_time', 'created_at', 'gcash_reference', 'proof_url'],
   transactions: ['id', 'booking_id', 'client_id', 'client_name', 'staff_id', 'staff_name', 'services', 'amount', 'payment_method', 'commission_amount', 'commission_rate_used', 'date'],
   services: ['id', 'name', 'price']
 };
@@ -45,7 +49,7 @@ function checkAuth_(token) {
 const TEXT_COLUMNS = {
   staff: ['pin', 'contact_number'],
   clients: ['contact_number'],
-  bookings: ['client_contact', 'client_email']
+  bookings: ['client_contact', 'client_email', 'gcash_reference']
 };
 
 function getOrCreateSheet_(key, name, headers) {
@@ -105,6 +109,25 @@ function writeTab_(key, rows) {
   sheet.getRange(2, 1, values.length, headers.length).setValues(values);
 }
 
+// Where GCash manual-transfer payment screenshots live — created on first use.
+// Shared with anyone holding the link (view-only) so staff can open it straight
+// from the Bookings row without needing Drive access granted individually.
+function getProofFolder_() {
+  const name = 'SukiDesk Payment Proofs';
+  const folders = DriveApp.getFoldersByName(name);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(name);
+}
+
+function saveProofImage_(base64, mimeType, label) {
+  const bytes = Utilities.base64Decode(base64);
+  const ext = (mimeType.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+  const blob = Utilities.newBlob(bytes, mimeType, `gcash-proof-${label}.${ext}`);
+  const file = getProofFolder_().createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return file.getUrl();
+}
+
 function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -161,6 +184,17 @@ function doPost(e) {
       const headers = SCHEMAS.bookings;
       const sheet = getOrCreateSheet_('bookings', SHEET_NAMES.bookings, headers);
       const booking = payload.booking || {};
+
+      if (booking.proofImageBase64 && booking.proofImageMimeType) {
+        try {
+          booking.proof_url = saveProofImage_(booking.proofImageBase64, booking.proofImageMimeType, booking.id || 'proof');
+        } catch (err) {
+          // Don't fail the whole booking over a Drive hiccup — staff can still
+          // follow up with the customer even without the screenshot on file.
+          booking.proof_url = '';
+        }
+      }
+
       sheet.appendRow(headers.map(h => (booking[h] === undefined || booking[h] === null) ? '' : booking[h]));
       return jsonOut_({ ok: true });
     } finally {

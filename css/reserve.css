@@ -226,6 +226,116 @@
   color: var(--text-main);
 }
 
+.reserve-status.pending {
+  background: rgba(201, 162, 75, 0.08);
+  border: 1px solid var(--gold);
+  color: var(--text-main);
+}
+
+/* GCash manual-transfer panel */
+.gcash-panel {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-top: -8px;
+}
+
+.gcash-panel h4 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.gcash-panel .step-hint {
+  margin-bottom: 20px;
+}
+
+.gcash-details {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.gcash-qr-wrap {
+  flex: 0 0 auto;
+  width: 160px;
+}
+
+.gcash-qr {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.gcash-number-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gcash-number-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.gcash-number-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gcash-number {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+}
+
+.gcash-hint {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.gcash-field-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.gcash-panel input[type="file"],
+.gcash-panel input[type="text"] {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+}
+
+.btn-sm {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-main);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.btn-sm:hover { border-color: var(--gold-light); }
+
 @media (max-width: 600px) {
   .booking-step { padding: 20px; }
   .booking-summary { flex-direction: column; align-items: stretch; text-align: center; }

@@ -365,7 +365,7 @@ function renderReservations() {
 
   el.innerHTML = `
     <table class="data-table">
-      <thead><tr><th>Date</th><th>Time</th><th>Service</th><th>Name</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead>
+      <thead><tr><th>Date</th><th>Time</th><th>Service</th><th>Name</th><th>Phone</th><th>Email</th><th>Status</th><th>Proof</th><th></th></tr></thead>
       <tbody>
         ${list.map(b => {
           const dt = b.scheduled_time ? new Date(b.scheduled_time) : null;
@@ -380,10 +380,25 @@ function renderReservations() {
             <td>${esc(b.client_contact || '—')}</td>
             <td>${esc(b.client_email || '—')}</td>
             <td><span class="badge badge-${b.status}">${esc((b.status || '').replace('_', ' '))}</span></td>
+            <td>${b.proof_url ? `<a href="${esc(b.proof_url)}" target="_blank" rel="noopener">View</a>` : '—'}</td>
+            <td>${b.status === 'payment_pending' ? `<button class="btn-sm btn-sm-primary" data-act="confirm-payment" data-id="${b.id}">Confirm Payment</button>` : ''}</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>`;
+}
+
+function bindReservationsActions() {
+  document.getElementById('reservations-list').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn || btn.dataset.act !== 'confirm-payment') return;
+    const booking = DB.bookings.find(b => b.id === btn.dataset.id);
+    if (!booking) return;
+    if (!confirm(`Mark ${booking.client_name}'s GCash payment as verified and confirm this booking?`)) return;
+    booking.status = 'confirmed';
+    saveDB();
+    renderReservations();
+  });
 }
 
 /* ---------- CLIENTS ---------- */
@@ -732,6 +747,7 @@ function bindModals() {
     btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
   });
   bindQueueActions();
+  bindReservationsActions();
   bindClientActions();
   bindCheckoutActions();
   bindStaffActions();
