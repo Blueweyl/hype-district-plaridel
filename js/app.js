@@ -384,10 +384,10 @@ function renderReservations() {
             <td>${esc(b.client_email || '—')}</td>
             <td><span class="badge badge-${b.status}">${esc((b.status || '').replace('_', ' '))}</span></td>
             <td>${b.proof_url ? `<a href="${esc(b.proof_url)}" target="_blank" rel="noopener">View</a>` : '—'}</td>
-            <td>${b.status === 'payment_pending' ? `
+            <td>
               <button class="btn-sm btn-sm-primary" data-act="confirm-payment" data-id="${b.id}">Approve</button>
               <button class="btn-sm btn-sm-danger" data-act="reject-payment" data-id="${b.id}">Reject</button>
-            ` : ''}</td>
+            </td>
           </tr>`;
         }).join('')}
       </tbody>
