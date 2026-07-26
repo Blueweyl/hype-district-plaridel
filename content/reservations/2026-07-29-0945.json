@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-29",
+  "time": "09:45",
+  "serviceId": "scalp-treatment,classic-perm",
+  "serviceName": "Scalp Treatment + Traditional / Classic Perm",
+  "price": 2800,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "gcash_manual",
+  "providerSessionId": "gcash_manual_1785071290691_i4m0fk",
+  "status": "payment_pending",
+  "confirmedAt": "2026-07-26T13:08:10.795Z"
+}
