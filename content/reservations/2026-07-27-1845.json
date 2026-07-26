@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-27",
+  "time": "18:45",
+  "serviceId": "classic-haircut-fade,loose-perm",
+  "serviceName": "Classic Haircuts & Fades + Loose Perm",
+  "price": 1250,
+  "firstName": "Newell",
+  "phoneLast4": "0481",
+  "paymentProvider": "stripe",
+  "providerSessionId": "cs_test_b1Dk5OoKVss4wSgypJpXceEL96MSfWMsaGBbpD3jdmp1jXh1p7uHaMNWKN",
+  "status": "confirmed",
+  "confirmedAt": "2026-07-26T11:11:13.815Z"
+}
