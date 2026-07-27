@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-28",
+  "time": "15:00",
+  "serviceId": "scalp-treatment,loose-perm",
+  "serviceName": "Scalp Treatment + Loose Perm",
+  "price": 2800,
+  "firstName": "Jinky",
+  "phoneLast4": "0481",
+  "paymentProvider": "gcash_manual",
+  "providerSessionId": "gcash_manual_1785120106530_a75qdx",
+  "status": "payment_pending",
+  "confirmedAt": "2026-07-27T02:41:46.649Z"
+}
