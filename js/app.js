@@ -235,6 +235,7 @@ function tryLogin() {
 }
 
 function logout() {
+  stopReservationsPolling();
   SESSION = null;
   sessionStorage.removeItem(SESSION_KEY);
   showScreen('login');
@@ -259,6 +260,30 @@ function goTab(name) {
   if (name === 'dashboard') renderDashboard();
   if (name === 'staff') renderStaffView();
   if (name === 'settings') renderSettings();
+
+  if (name === 'reservations') startReservationsPolling();
+  else stopReservationsPolling();
+}
+
+// Auto-refresh the Reservations tab from the cloud every 30s while it's open,
+// so new online bookings (and staff Approve/Reject actions from another
+// device) show up without needing "Pull from Cloud Now" every time. Only
+// runs while this tab is actually visible, and only if cloud sync is set up.
+let reservationsPollTimer = null;
+const RESERVATIONS_POLL_MS = 30000;
+
+function startReservationsPolling() {
+  stopReservationsPolling();
+  if (!isCloudConfigured()) return;
+  reservationsPollTimer = setInterval(async () => {
+    await pullFromCloud();
+    renderReservations();
+  }, RESERVATIONS_POLL_MS);
+}
+
+function stopReservationsPolling() {
+  clearInterval(reservationsPollTimer);
+  reservationsPollTimer = null;
 }
 
 /* ---------- QUEUE ---------- */
